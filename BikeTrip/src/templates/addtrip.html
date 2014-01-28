@@ -1,0 +1,44 @@
+{% extends "templates/base.html" %}
+{% block extrahead %}
+	<link rel="stylesheet" href="/static/css/blitzer/jquery-ui-1.10.4.custom.min.css" />
+	<script src="/static/js/jquery-1.10.2.js"></script>
+	<script src="/static/js/jquery-ui-1.10.4.custom.min.js"></script>
+	 <script>
+		$(function() {
+			$( "#from_datepicker" ).datepicker();
+		});
+		$(function() {
+			$( "#to_datepicker" ).datepicker();
+		});
+	</script>
+{% endblock %}
+{% block content %}
+	 <div class="content_title"><span></span>Add Trip</div>
+        <div class="cleaner h20"></div>
+          	<p align="justify">Add trip....</p>
+       
+      <div id="contact_form">
+				<form action="/addtrip" enctype="multipart/form-data" method="post">
+                        
+				<label>Name:</label> <input type="text"  name="trip_name" class="input_field" />
+				<div class="cleaner h10"></div>
+				<label>From:</label> <input type="text" id="from_datepicker" name="from_date" class="input_field" />
+				<div class="cleaner h10"></div>
+				<label>To:</label> <input type="text" id="to_datepicker" name="to_date" class="input_field" />
+				<div class="cleaner h10"></div>
+				<label>Major citys::</label> <input type="text" name="cities" class="input_field" />
+				<div class="cleaner h10"></div>
+				<label>Description:</label> <textarea name="description" rows="0" cols="0" ></textarea>
+				<div class="cleaner h10"></div>
+                <label>Trip Avatar:</label>	<input type="file" name="img" /> 
+          		<div class="cleaner h10"></div>
+          		<input type="radio" name="visibility" value="True" checked />Public
+				<input type="radio" name="visibility" value="False"/>Private
+				<div class="cleaner h10"></div>
+				<input type="submit" value="Add Trip" id="submit" name="submit" class="submit_btn float_l" />
+				
+			</form>
+	  <div class="cleaner h20"></div>
+   	  </div>
+   
+{% endblock %}

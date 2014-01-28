@@ -1,0 +1,28 @@
+{% extends "templates/base.html" %}
+{% block extrahead %} 
+   
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUPnhHodFAHnVesDToGphgHi-JRLs0l0U&sensor=false"></script>
+    <script type="text/javascript">
+      function initialize() {
+        var mapOptions = {
+          center: new google.maps.LatLng({{lat}},{{lng}}),
+          zoom: 12
+        };
+     var map = new google.maps.Map(document.getElementById("map-canvas"),
+        mapOptions);
+		
+		marker = new google.maps.Marker({
+			position: new google.maps.LatLng({{lat}},{{lng}}),
+			map: map
+		}); 
+		
+		
+      }
+
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+{% endblock %}
+{% block content %}
+	<div class="content_title"><span></span>Map</div>
+    <div id="map-canvas" style="margin:20px 20px;width:350px; height:350px"></div>	
+{% endblock %}

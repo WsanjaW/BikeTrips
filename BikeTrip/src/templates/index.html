@@ -1,0 +1,17 @@
+{% extends "templates/base.html" %}
+{% block content %}
+      <div class="content_title"><span></span>Trips</div>
+      	{% for trip in trips %} 
+        <div class="p_box">
+        	<h2>{{trip.trip_name}}</h2>
+          <div class="image_frame"><img src="/img?img_id={{trip.key.urlsafe()}}" alt="image 3" /></div>
+       		{{trip.description}}<a href="#" class="read_more"></a>
+          <div class="cleaner">Cities:
+     	    {% for city in trip.cities %}
+			 	<a href='/cityinfo?city={{city}}' >{{city}},</a> 
+			{% endfor %}
+          </div>
+		</div>
+       {% endfor %} 
+   
+{% endblock %}

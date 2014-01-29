@@ -1,0 +1,39 @@
+{% extends "templates/base.html" %}
+{% block content %}
+      <div class="content_title"><span></span>Trip Details</div>
+        <div class="p_box">
+        	<h2>{{trip.trip_name}}</h2>
+        	<p><b>From:</b> <i>{{trip.from_date}}</i> <b>To:</b> <i>{{trip.to_date}}</i></p>
+          <div class="image_frame"><img src="/img?img_id={{trip.key.urlsafe()}}" alt="image 3" /></div>
+       		{{trip.description}}
+          <div class="cleaner">Cities:
+     	    {% for city in trip.cities %}
+			 	<a href='/cityinfo?city={{city}}' >{{city}},</a> 
+			{% endfor %}
+          </div>
+          <div class="cleaner">
+          <ul>
+          	{% for i in range(num) %}
+				<li><b>{{tracks[i].track_name}}</b><br> <a href="/serve/{{blobs[i].key()}}">{{blobs[i].filename}}</a></li>
+			{% endfor %}
+			</ul>
+          </div>
+		</div>
+		
+		
+		<div id="contact_form">
+				<form action={{upload}} enctype="multipart/form-data"  method="post">
+                        
+				<label>Name:</label> <input type="text"  name="trip_name" class="input_field" />
+				<div class="cleaner h10"></div>
+                <label>Track(.gpx):</label>	<input type="file" name="file" accept="text/*" /> 
+                <input type="hidden" name="trip_id" value="{{trip.key.urlsafe()}}">
+          		<div class="cleaner h10"></div>
+				<input type="submit" value="Upload" id="submit" name="submit" class="submit_btn float_l" />
+				
+			</form>
+	  <div class="cleaner h20"></div>
+   	  </div>
+       
+   
+{% endblock %}

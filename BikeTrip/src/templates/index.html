@@ -4,8 +4,9 @@
       	{% for trip in trips %} 
         <div class="p_box">
         	<h2>{{trip.trip_name}}</h2>
+        	<p><b>From:</b> <i>{{trip.from_date}}</i> <b>To:</b> <i>{{trip.to_date}}</i></p>
           <div class="image_frame"><img src="/img?img_id={{trip.key.urlsafe()}}" alt="image 3" /></div>
-       		{{trip.description}}<a href="#" class="read_more"></a>
+       		{{trip.description}}<a href="/trip?trip_id={{trip.key.urlsafe()}}" class="read_more"></a>
           <div class="cleaner">Cities:
      	    {% for city in trip.cities %}
 			 	<a href='/cityinfo?city={{city}}' >{{city}},</a> 

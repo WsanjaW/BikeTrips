@@ -5,6 +5,7 @@ Created on 23.01.2014.
 '''
 
 from google.appengine.ext import ndb
+from google.appengine.ext import blobstore
 
 class Trip(ndb.Model):
     '''
@@ -19,3 +20,12 @@ class Trip(ndb.Model):
     description = ndb.TextProperty()
     cities = ndb.StringProperty(repeated=True)
     visibility = ndb.BooleanProperty()
+    
+
+class Track(ndb.Model):
+    
+    track_name = ndb.StringProperty()
+    creation_date = ndb.DateProperty(auto_now_add=True)
+    blob_key =ndb.BlobKeyProperty()
+     
+

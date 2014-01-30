@@ -9,6 +9,9 @@ handlers:
   static_dir: static/js
 - url: /static/css
   static_dir: static/css
+- url: /addtrip
+  script: biketrip.application
+  login: required
 - url: /.*
   script: biketrip.application
 

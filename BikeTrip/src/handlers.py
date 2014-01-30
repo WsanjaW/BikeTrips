@@ -213,6 +213,9 @@ class OneTrip(webapp2.RequestHandler):
         tripk = ndb.Key(urlsafe=trip_key)
         trip = tripk.get()
         
+        #get id of user for given track
+        trip_user = tripk.parent().id()
+        
         #get tracks for trip
         track_query = Track.query(ancestor=tripk)
         tracks = track_query.fetch(10)
@@ -224,7 +227,8 @@ class OneTrip(webapp2.RequestHandler):
         for track in tracks:
             bli.append(BlobInfo(track.blob_key))
         #create template
-        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'trip':trip,'upload':upload_url,'tracks':tracks,'blobs':bli,'num':num}
+        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'trip':trip,'upload':upload_url,
+                           'tracks':tracks,'blobs':bli,'num':num,'trip_user':trip_user}
         template = JINJA_ENVIRONMENT.get_template('templates/onetrip.html')
         
         #set cookie value to this page url

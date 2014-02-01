@@ -3,7 +3,9 @@
 	<link rel="stylesheet" href="/static/css/blitzer/jquery-ui-1.10.4.custom.min.css" />
 	<script src="/static/js/jquery-1.10.2.js"></script>
 	<script src="/static/js/jquery-ui-1.10.4.custom.min.js"></script>
-	 <script>
+	<script type="text/javascript" src="/static/js/jquery.validate.js"></script>
+	<script type="text/javascript" src="/static/js/additional-methods.js"></script>
+	<script>
 		$(function() {
 			$( "#from_datepicker" ).datepicker();
 		});
@@ -11,6 +13,76 @@
 			$( "#to_datepicker" ).datepicker();
 		});
 	</script>
+	<script>
+		
+   		$(document).ready(function(){
+     		jQuery.validator.addMethod("cities", function(value, element) {
+     			if (value.search(/[!@#$%^&\*\(\)_\+\?><\.\/\\|]/)  > -1){
+     				return false;
+     			}
+     			if (value.search(/[0-9]/)  > -1){
+     				return false;
+     			}
+     			if (value.search(/([a-zA-Z ],)*[a-zA-Z ]/)  > -1){
+     				return true;
+     			}
+				return false;
+			}, "false");
+    		$('#addform').validate(
+    		{
+    			rules: {
+    				trip_name: {
+    					minlength: 2,
+    					required: true
+    				},
+    				from_date: {
+    					required: true,
+    					date: true
+    				},
+    				to_date: {
+    					required: true,
+    					date: true
+    				},
+    				img: {
+    				
+    					accept: "image/*",
+    					
+    				},
+    				cities: {
+    					required: true,
+    					cities: true
+    				},
+    				
+    		    },
+    		    messages: {
+        			
+        			trip_name: {
+            			required: "Enter trip name",
+            			minlength: jQuery.format("Enter at least {0} characters"),
+            		},
+            		img: {
+    				
+    					accept: "File must be image"
+    					
+    				},
+    				cities: {
+    					required: "Enter city",
+    					cities: "Wrong format! format: First City, Secund City"
+    				},
+    				
+            		
+   				},
+    			highlight: function(element) {
+    				$(element).closest('.control-group').removeClass('success').addClass('error');
+    			},
+    			success: function(element) {
+    				element
+    					.text('OK!').addClass('valid')
+    						.closest('.control-group').removeClass('error').addClass('success');
+    			}
+   		 });
+    }); // end document.ready
+</script>
 {% endblock %}
 {% block content %}
 	 <div class="content_title"><span></span>Add Trip</div>
@@ -18,19 +90,50 @@
           	<p align="justify">Add trip....</p>
        
       <div id="contact_form">
-				<form action="/addtrip" enctype="multipart/form-data" method="post">
-                        
-				<label>Name:</label> <input type="text"  name="trip_name" class="input_field" />
+				<form action="/addtrip" id="addform" enctype="multipart/form-data" method="post">
+                    <div class="control-group">
+						<label class="control-label" for="name">Trip Name</label>
+						<div class="controls">
+							<input type="text" class="input_field" name="trip_name" id="trip_name">
+						</div>
+					</div>  
 				<div class="cleaner h10"></div>
-				<label>From:</label> <input type="text" id="from_datepicker" name="from_date" class="input_field" />
+				<div class="control-group">
+						<label class="control-label" for="from_date">From:</label>
+						<div class="controls">
+							 <input type="text" id="from_datepicker" name="from_date" class="input_field" />
+						</div>
+				</div>  
+				
 				<div class="cleaner h10"></div>
-				<label>To:</label> <input type="text" id="to_datepicker" name="to_date" class="input_field" />
+				<div class="control-group">
+						<label class="control-label" for="to_date">To:</label>
+						<div class="controls">
+							  <input type="text" id="to_datepicker" name="to_date" class="input_field" />
+						</div>
+				</div>  
+				
 				<div class="cleaner h10"></div>
-				<label>Major citys::</label> <input type="text" name="cities" class="input_field" />
+				<div class="control-group">
+						<label class="control-label" for="cities">Major Cities:</label>
+						<div class="controls">
+							  <input type="text" name="cities" class="input_field" />
+						</div>
+				</div>  
 				<div class="cleaner h10"></div>
-				<label>Description:</label> <textarea name="description" rows="0" cols="0" ></textarea>
+				<div class="control-group">
+						<label class="control-label" for="description">Description:</label>
+						<div class="controls">
+							   <textarea name="description" rows="0" cols="0" ></textarea>
+						</div>
+				</div>  
 				<div class="cleaner h10"></div>
-                <label>Trip Avatar:</label>	<input type="file" name="img" /> 
+				<div class="control-group">
+						<label class="control-label" for="img">Trip Avatar:</label>
+						<div class="controls">
+							   <input type="file" name="img" /> 
+						</div>
+				</div>  
           		<div class="cleaner h10"></div>
           		<input type="radio" name="visibility" value="True" checked />Public
 				<input type="radio" name="visibility" value="False"/>Private

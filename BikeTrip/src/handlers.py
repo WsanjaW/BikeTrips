@@ -100,14 +100,16 @@ class AddTrip(webapp2.RequestHandler):
         #TODO some checking      
         trip = Trip(parent=trip_key(id))
         trip.trip_name = self.request.get('trip_name')
-        print trip.trip_name
+        
         trip.description = self.request.get('description')
         trip.cities =  self.get_cities(self.request.get('cities'))
         avatar = self.request.get('img')
-        trip.trip_avatar = avatar
-        trip.from_date = datetime.strptime( self.request.get('from_date'), '%m/%d/%Y')
-        print trip.from_date
+        if  avatar:
+            trip.trip_avatar = avatar
+        
+        trip.from_date = datetime.strptime( self.request.get('from_date'), '%m/%d/%Y')  
         trip.to_date = datetime.strptime(self.request.get('to_date'), '%m/%d/%Y')
+        
         if self.request.get('visibility') == 'True':
             trip.visibility = True
         else:
@@ -269,6 +271,57 @@ class DownloadHandler(blobstore_handlers.BlobstoreDownloadHandler):
         mime_type='text/xml'
         self.send_blob(blob_info,content_type=mime_type,save_as=save_as_name)
 
+class UpdateTripHandler(blobstore_handlers.BlobstoreUploadHandler):
+    '''
+    Handler for uploading gpx file to blobstore
+    '''
+    def post(self):
+        
+        if self.request.get('form_id') == 'nuf':
+            
+            new_name = self.request.get('txtValue')
+            if new_name:
+                
+                #get specific trip     
+                trip_key = self.request.get('trip_id')
+                tripk = ndb.Key(urlsafe=trip_key)
+                trip = tripk.get()
+          
+                trip.trip_name = new_name
+                trip.put()
+        
+       
+                # Create an array
+                array = {'text': new_name}
+       
+                # Output the JSON
+                self.response.headers['Content-Type'] = 'application/json'
+                self.response.out.write(json.dumps(array))
+        
+        if self.request.get('form_id') == 'cuf':
+            
+            new_cities = self.request.get('txtValue')
+            
+            #get specific trip     
+            trip_key = self.request.get('trip_id')
+            tripk = ndb.Key(urlsafe=trip_key)
+            trip = tripk.get()
+            trip.cities = self.get_cities(new_cities)
+           
+            trip.put()
+        
+       
+            # Create an array
+            array = {'text': new_cities}
+       
+            # Output the JSON
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(json.dumps(array))
     
-    
-    
+    def get_cities(self,allCities):
+        '''
+        Create list of cities from string
+        '''
+        cities = allCities.split(',')
+        cities = [x.strip() for x in cities]
+        return cities

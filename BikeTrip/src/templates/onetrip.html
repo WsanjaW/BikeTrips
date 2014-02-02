@@ -5,125 +5,8 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript" src="/static/js/jquery.validate.js"></script>
 <script type="text/javascript" src="/static/js/additional-methods.js"></script>
-<script>
-		
-   		$(document).ready(function(){
-   			
-   			jQuery.validator.addMethod("gpx", function(value, element) {
-   				if(value.indexOf(".gpx") > -1){
-   					return true;
-   				}
-   				return false;
-     			
-			}, "false");
-    		$('#fif').validate(
-    		{
-    			rules: {
-    				trip_name: {
-    					minlength: 2,
-    					required: true
-    				},
-    				file: {
-    					required: true,
-    					accept: "application/octet-stream",
-    					gpx: true
-    				},
-    				
-    				
-    		    },
-    		    messages: {
-        			
-        			trip_name: {
-            			required: "Enter trip name",
-            			minlength: jQuery.format("Enter at least {0} characters"),
-            		},
-            		file: {
-    				
-    					gpx: "File must be .gpx",
-    					accept: "application/octet-stream"
-    					
-    				},    				
-            		
-   				},
-    			highlight: function(element) {
-    				$(element).closest('.control-group').removeClass('success').addClass('error');
-    			},
-    			success: function(element) {
-    				element
-    					.text('OK!').addClass('valid')
-    						.closest('.control-group').removeClass('error').addClass('success');
-    			}
-   		 });
-    }); // end document.ready
-</script>
-<!--ajax calls using jquery-->
-		<script type="text/javascript">
-		      $(document).ready(function(){
-		      
-                // This will run when the item of class 'button' is clicked
-                $("#updatename").click(function() {
-                   
-                    // Grabs the text input trip_id
-                    var name = $("#uname").val();
-                    if(name == " " || name == ""){return false;}
-                    var trip_id = $("#trip_id").val();
-            		var form_id = 'nuf';
-                    var dataString = 'txtValue='+ name + '&' + 'trip_id=' + trip_id + '&form_id=' +form_id;   
+<script type="text/javascript" src="/static/js/updateFormValidation.js"></script>
 
-                    // This creates the AJAX connection
-                    $.ajax({
-                        type: "POST",
-                        url: "/update",
-                        data: dataString,
-                        success: function(data) {
-                            $('#trip_name').html(data.text);
-                            $('[name="updatediv"]').hide();
-                            open1 = 1;
-                            
-                        }
-                    });
-                return false;
-                });
-                 $("#updatecities").click(function() {
-                   // Grabs the text input trip_id
-                    var cities = $("#ucities").val();
-                    if (cities.search(/[!@#$%^&\*\(\)_\+\?><\.\/\\|]/)  > -1){
-     					return false;
-     				}
-     				if (cities.search(/[0-9]/)  > -1){
-     					return false;
-     				}
-     				if (cities.search(/([a-zA-Z ],)*[a-zA-Z ]/)  == -1){
-     					return false;
-     				}
-				
-                    var trip_id = $("#trip_id").val();
-            		var form_id = 'cuf';
-                    var dataString = 'txtValue='+ cities + '&' + 'trip_id=' + trip_id + '&form_id=' +form_id;   
-
-                    // This creates the AJAX connection
-                    $.ajax({
-                        type: "POST",
-                        url: "/update",
-                        data: dataString,
-                        success: function(data) {
-                        	var list = data.text.split(",");
-                        	var txt = "Cities:" 
-                        	for (var x in list)
-  							{
-  								txt=txt + "<a href='/cityinfo?city="+ list[x] + "'"+ "id='cities' >"+list[x] +",</a>" ;
-  							}
-                            $('#cities').html(txt);
-                            $('[name="updatediv"]').hide();
-                            open1 = 1;
-                            
-                        }
-                    });
-                return false;
-                 
-                });
-            });
-		</script>
 {% endblock %}
 {% block content %}
       <div class="content_title"><span></span>Trip Details</div>
@@ -172,7 +55,7 @@
 					<input type="submit" value="Update" id="updatename" name="updatename" class="submit_btn float_l" />
 				</form>
 				<form id='un' action="" method="post">
-					<label>Cities:</label> <input type="text" id="ucities" name="change_trip_name" value="" class="input_field"/>
+					<label>Cities:</label> <input type="text" id="ucities" name="change_cities" value="" class="input_field"/>
 					<input type="hidden" id='trip_id' name="trip_id" value="{{trip.key.urlsafe()}}"/>
 					<input type="submit" value="Update" id="updatecities" name="updatename" class="submit_btn float_l" />
 				</form>

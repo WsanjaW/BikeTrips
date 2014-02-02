@@ -5,6 +5,7 @@
 	<script src="/static/js/jquery-ui-1.10.4.custom.min.js"></script>
 	<script type="text/javascript" src="/static/js/jquery.validate.js"></script>
 	<script type="text/javascript" src="/static/js/additional-methods.js"></script>
+	<script type="text/javascript" src="/static/js/addFormValidation.js"></script>
 	<script>
 		$(function() {
 			$( "#from_datepicker" ).datepicker();
@@ -13,76 +14,7 @@
 			$( "#to_datepicker" ).datepicker();
 		});
 	</script>
-	<script>
-		
-   		$(document).ready(function(){
-     		jQuery.validator.addMethod("cities", function(value, element) {
-     			if (value.search(/[!@#$%^&\*\(\)_\+\?><\.\/\\|]/)  > -1){
-     				return false;
-     			}
-     			if (value.search(/[0-9]/)  > -1){
-     				return false;
-     			}
-     			if (value.search(/([a-zA-Z ],)*[a-zA-Z ]/)  > -1){
-     				return true;
-     			}
-				return false;
-			}, "false");
-    		$('#addform').validate(
-    		{
-    			rules: {
-    				trip_name: {
-    					minlength: 2,
-    					required: true
-    				},
-    				from_date: {
-    					required: true,
-    					date: true
-    				},
-    				to_date: {
-    					required: true,
-    					date: true
-    				},
-    				img: {
-    				
-    					accept: "image/*",
-    					
-    				},
-    				cities: {
-    					required: true,
-    					cities: true
-    				},
-    				
-    		    },
-    		    messages: {
-        			
-        			trip_name: {
-            			required: "Enter trip name",
-            			minlength: jQuery.format("Enter at least {0} characters"),
-            		},
-            		img: {
-    				
-    					accept: "File must be image"
-    					
-    				},
-    				cities: {
-    					required: "Enter city",
-    					cities: "Wrong format! format: First City, Secund City"
-    				},
-    				
-            		
-   				},
-    			highlight: function(element) {
-    				$(element).closest('.control-group').removeClass('success').addClass('error');
-    			},
-    			success: function(element) {
-    				element
-    					.text('OK!').addClass('valid')
-    						.closest('.control-group').removeClass('error').addClass('success');
-    			}
-   		 });
-    }); // end document.ready
-</script>
+	
 {% endblock %}
 {% block content %}
 	 <div class="content_title"><span></span>Add Trip</div>

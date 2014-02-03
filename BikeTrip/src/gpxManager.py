@@ -7,8 +7,10 @@ Module for processing .gpx files
 '''
 
 from xml.dom.minidom import parseString, parse
-from datetime import datetime
+from datetime import datetime,timedelta
 import math
+
+
 
 PIx = 3.14159265358979
 RADIUS = 6371
@@ -41,7 +43,7 @@ class Track():
         
 class GPXReader():
     '''
-    
+    Class for parsing gpx file
     '''
     
     def parse_gpx(self,gpxstring):
@@ -73,68 +75,131 @@ class GPXReader():
                                     if wpAtrr.nodeName =="ele":
                                         wp.elev = float(wpAtrr.firstChild.nodeValue)
                                     if wpAtrr.nodeName =="time":
-                                        wp.time = wpAtrr.firstChild.nodeValue
+                                        #two possible date formats 2005-09-10T12:55:12.999Z and 2013-08-12T07:17:29Z
+                                        #TODO make every standard format available 
+                                        try:
+                                            wp.time = datetime.strptime(wpAtrr.firstChild.nodeValue,'%Y-%m-%dT%H:%M:%SZ')  
+                                        except:
+                                            try:
+                                                wp.time = datetime.strptime(wpAtrr.firstChild.nodeValue,'%Y-%m-%dT%H:%M:%S.%fZ') 
+                                            except:
+                                                raise Exception('Datetime format error')
+                                                
+                                            
+                                        
                                 tracks[-1].wpList.append(wp)
             return tracks
-           
+        #TODO better exception handling
         except:
             raise Exception('File format error')
         
-    def DistanceBetweenPlaces(self,lon1, lat1, lon2,  lat2):
+    
+
+
+
+class GPXCalculation():
+    '''
+    Class for calculating statistics for given track
+    '''
+    
+    def __init__(self,track):
+        '''
+        Sets Track object 
+        '''
+        self.track = track
+    
+    def calculate_distance(self):
+        '''
+        Calculates total distance 
+        '''
+        total = 0;
+        wpList = self.track.wpList;
+        priv = wpList[0]
+        for wp in wpList[1:]:
+            total += self.distance_between_places(priv.lon,priv.lat,wp.lon,wp.lat)
+            priv = wp
+
+        return total;
+    
+    def total_climb(self):
+        '''
+        Calculates total climb 
+        '''
+        
+        total = 0           
+        wpList = self.track.wpList;
+        priv = wpList[0]
+        for wp in wpList[1:]:
+            diff = wp.elev - priv.elev
+            if diff > 0:
+                if self.distance_between_places(priv.lon,priv.lat,wp.lon,wp.lat)> 0.003:
+                    total += diff
+                        
+            priv = wp
+
+        return total;
+        
+    def total_time(self):
+        '''
+        Calculates total moving time 
+        '''
+        total = timedelta()
+       
+        wpList = self.track.wpList
+        priv = wpList[0]
+        for wp in wpList:
+                
+            dt = wp.time - priv.time
+            if self.distance_between_places(priv.lon,priv.lat,wp.lon,wp.lat) > 0.003 and dt.total_seconds() < 105:
+                total += dt
+            priv = wp
+        return total
+    
+    def avr_speed(self):
+        '''
+        Calculates average moving speed 
+        '''
+        total_distance = self.calculate_distance()
+        total_time = self.total_time()
+        if total_distance == 0:
+            return 0
+        if total_time == 0:
+            return 0
+        
+        return total_distance/(total_time.total_seconds() * 0.000277778)
+    
+    def max_elev(self):
+        '''
+        Calculates max elevation 
+        '''
+        m = -100
+        m = max([x.elev for x in self.track.wpList])
+        return m   
+     
+    def distance_between_places(self,lon1, lat1, lon2,  lat2):
         '''
         Calculates distance between two points(lon,lat)
         '''
-        dlon = self.Radians(lon2 - lon1);
-        dlat = self.Radians(lat2 - lat1);
+        dlon = self.radians(lon2 - lon1);
+        dlat = self.radians(lat2 - lat1);
 
-        a = (math.sin(dlat / 2) * math.sin(dlat / 2)) + math.cos(self.Radians(lat1)) * math.cos(self.Radians(lat2)) * (math.sin(dlon / 2) * math.sin(dlon / 2));
+        a = (math.sin(dlat / 2) * math.sin(dlat / 2)) + math.cos(self.radians(lat1)) * math.cos(self.radians(lat2)) * (math.sin(dlon / 2) * math.sin(dlon / 2));
         angle = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
         return angle * RADIUS;
         
-    def Radians(self,x):
+    def radians(self,x):
         '''
         Degree to radians
         '''
         return x * PIx / 180;
 
-    def calculateDistance(self,trList):
-        '''
-        Calculates total distance for every track in trList
-        '''
-        total = 0;
+g = GPXReader()
+a = g.parse_gpx("Kuca-FON.gpx")
+gc = GPXCalculation(a[0])
+print gc.max_elev()
+print gc.calculate_distance()
+print gc.total_time()
+print gc.avr_speed()
 
-        for item in trList:
-        
-            wpList = item.wpList;
-            priv = wpList[0]
-            for wp in wpList[1:]:
-                total += self.DistanceBetweenPlaces(priv.lon,priv.lat,wp.lon,wp.lat)
-                priv = wp
 
-            return total;
-    
-    def totalClimb(self,trList):
-        '''
-        Calculates total climb for every track in trList
-        '''
-        
-        total = 0
-        for track in trList:
-            
-            wpList = track.wpList;
-            priv = wpList[0]
-            for wp in wpList[1:]:
-                diff = wp.elev - priv.elev
-                if diff > 0:
-                    if self.DistanceBetweenPlaces(priv.lon,priv.lat,wp.lon,wp.lat)> 0.003:
-                        total += diff
-                        
-                priv = wp
-
-            return total;
-        
-        
-
-        
-        
         

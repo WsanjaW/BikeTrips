@@ -29,3 +29,13 @@ class Track(ndb.Model):
     blob_key =ndb.BlobKeyProperty()
      
 
+class TrackStatistic(ndb.Model):
+    
+    track = ndb.KeyProperty(kind=Track)
+    name = ndb.StringProperty()
+    total_distance = ndb.FloatProperty()
+    total_time = ndb.DateTimeProperty()
+    avr_speed = ndb.FloatProperty()
+    total_climb = ndb.FloatProperty()
+    max_elev = ndb.FloatProperty()
+    

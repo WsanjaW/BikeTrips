@@ -8,16 +8,19 @@ import webapp2
 import jinja2
 import json
 import urllib
+import time
 
 from google.appengine.ext import ndb
 from google.appengine.api import users
 from google.appengine.api import urlfetch
+from google.appengine.api import taskqueue
 from google.appengine.ext import blobstore
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.ext.blobstore import BlobInfo
 
 from datetime import datetime
-from models import Trip,Track
+from models import Trip,Track,TrackStatistic
+from gpxManager import GPXReader,GPXCalculation
 
 
 #set jinja templates environment
@@ -115,8 +118,9 @@ class AddTrip(webapp2.RequestHandler):
         else:
             trip.visibility = False
         trip.put()
-        
-        self.redirect('/')
+        #redirect to mytrips because showing all tips will only be consistent in scope of user
+        # and only eventually consistent for whole datastore  
+        self.redirect('/alltrips?mytrips=True')
     
     def get_cities(self,allCities):
         '''
@@ -253,6 +257,10 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         track = Track(parent=tripk,track_name=self.request.get('trip_name'),blob_key=blob_info.key())   
         track.put()
         
+        track_key = track.key
+        #Add the task to the default queue.
+        taskqueue.add(url='/worker', params={'key': track_key.urlsafe()})
+        
         #get cookie with value of page from where upload is started
         cookie_value = self.request.cookies.get('redirect_url')
         self.redirect(str(cookie_value))
@@ -271,7 +279,7 @@ class DownloadHandler(blobstore_handlers.BlobstoreDownloadHandler):
         mime_type='text/xml'
         self.send_blob(blob_info,content_type=mime_type,save_as=save_as_name)
 
-class UpdateTripHandler(blobstore_handlers.BlobstoreUploadHandler):
+class UpdateTripHandler(webapp2.RequestHandler):
     '''
     Handler for uploading gpx file to blobstore
     '''
@@ -325,3 +333,57 @@ class UpdateTripHandler(blobstore_handlers.BlobstoreUploadHandler):
         cities = allCities.split(',')
         cities = [x.strip() for x in cities]
         return cities
+
+class DeleteTripHandler(webapp2.RequestHandler):
+    
+    def get(self):
+        
+        #get specific trip     
+        trip_key = self.request.get('trip_id')
+        tripk = ndb.Key(urlsafe=trip_key)
+        trip = tripk.get()
+                
+        #get tracks for trip
+        track_query = Track.query(ancestor=tripk)
+        tracks = track_query.fetch()
+        for track in tracks:
+            bolob = track.blob_key
+            blobstore.delete(bolob)
+            track.key.delete()
+        
+        #redirect to mytrips because showing all tips will only be consistent in scope of user
+        # and only eventually consistent for whole datastore  
+        trip.key.delete()
+        self.redirect('/alltrips?mytrips=True')
+
+
+
+            
+class TrackParserHandler(webapp2.RequestHandler):
+    
+    def post(self):
+        
+        key = self.request.get('key')
+        track_key = ndb.Key(urlsafe=key)
+        track = track_key.get()
+        blob_reader = blobstore.BlobReader(track.blob_key)
+        data = blob_reader.read()
+        g = GPXReader()
+        a = g.parse_gpx(data)
+        
+        for item in a:
+            gc = GPXCalculation(item)
+        
+            ts = TrackStatistic(track=track_key,name=item.name)
+            ts.total_distance = gc.calculate_distance()
+            ts.total_time = datetime.fromtimestamp(gc.total_time().total_seconds())
+            ts.avr_speed = gc.avr_speed()
+            ts.total_climb = gc.total_climb()
+            ts.max_elev = gc.max_elev()
+            ts.put()
+       
+
+
+
+
+

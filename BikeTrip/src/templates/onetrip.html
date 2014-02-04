@@ -31,6 +31,7 @@
           	{% if user.user_id() == trip_user %}
           		<a id="click" onclick="addfileform()">Add Track</a>
           		<a id="click1" onclick="addupdateform()">Update Trip</a>
+          		<a id="click2" href="/deleteTrip?trip_id={{trip.key.urlsafe()}}">Delete Trip</a>
           	{% endif %}
           {% endif %}
 		</div>

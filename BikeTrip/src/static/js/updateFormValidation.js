@@ -29,8 +29,9 @@
     				},
     				file: {
     					required: true,
-    					accept: "application/octet-stream",
     					gpx: true
+    					
+    					
     				},
     				
     				
@@ -44,7 +45,7 @@
             		file: {
     				
     					gpx: "File must be .gpx",
-    					accept: "application/octet-stream"
+    				
     					
     				},    				
             		

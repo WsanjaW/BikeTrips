@@ -50,7 +50,7 @@ class GPXReader():
         '''
         Processes gpx track and returns list of Track objects 
         '''
-        doc = parse(gpxstring)
+        doc = parseString(gpxstring)
         trkList = doc.getElementsByTagName('trk')
         tracks = []
         try:
@@ -193,13 +193,7 @@ class GPXCalculation():
         '''
         return x * PIx / 180;
 
-g = GPXReader()
-a = g.parse_gpx("Kuca-FON.gpx")
-gc = GPXCalculation(a[0])
-print gc.max_elev()
-print gc.calculate_distance()
-print gc.total_time()
-print gc.avr_speed()
+
 
 
         

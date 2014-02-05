@@ -266,7 +266,7 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         track_key = track.key
         #Add the task to the default queue.
         taskqueue.add(url='/worker', params={'key': track_key.urlsafe()})
-        
+        taskqueue.add(url='/worker', params={'key': track_key.urlsafe()})
         #get cookie with value of page from where upload is started
         cookie_value = self.request.cookies.get('redirect_url')
         self.redirect(str(cookie_value))
@@ -379,45 +379,50 @@ class TrackParserHandler(webapp2.RequestHandler):
     Called from push queue
     TODO transaction when writing in db
     '''
+               
     def post(self):
         
-#         time.sleep(60)
+        time.sleep(30)
         
         #get track
         key = self.request.get('key')
         track_key = ndb.Key(urlsafe=key)
         track = track_key.get()
         
-        #read data from uploaded file
-        blob_reader = blobstore.BlobReader(track.blob_key)
-        data = blob_reader.read()
-        try:
-            g = GPXReader()
-            a = g.parse_gpx(data)
+        track_stat_query= TrackStatistic.query(TrackStatistic.track == track_key)
+        stat = track_stat_query.fetch(1)
+        if stat == []:
+            #read data from uploaded file
+            blob_reader = blobstore.BlobReader(track.blob_key)
+            data = blob_reader.read()
+            try:
+                g = GPXReader()
+                a = g.parse_gpx(data)
         
-            for item in a:
+                for item in a:
             
-                gc = GPXCalculation(item)
-                ts = TrackStatistic(track=track_key,name=item.name)
-                ts.total_distance = gc.calculate_distance()
-                ts.total_time = datetime.fromtimestamp(gc.total_time().total_seconds())
-                ts.avr_speed = gc.avr_speed()
-                ts.total_climb = gc.total_climb()
-                ts.max_elev = gc.max_elev()
-                ts.put()
+                    gc = GPXCalculation(item)
+                    ts = TrackStatistic(track=track.key,name=item.name)
+                    ts.total_distance = gc.calculate_distance()
+                    ts.total_time = datetime.fromtimestamp(gc.total_time().total_seconds())
+                    ts.avr_speed = gc.avr_speed()
+                    ts.total_climb = gc.total_climb()
+                    ts.max_elev = gc.max_elev()
+                    ts.put()
             
-            #change status to indicate that calculation is done
-            track.status = ""
-            track.put()
+                #change status to indicate that calculation is done
+                track.status = ""
+                track.put()
             
-        except GpxDateFormatException:
-            #if error occurs set status so appropriate message is shown 
-            track.status = "Date in wrong format"
-            track.put()
-        except GpxFormatException:
-            #if error occurs set status so appropriate message is shown 
-            track.status = "Unable to parse gpx"
-            track.put()
+            except GpxDateFormatException:
+                #if error occurs set status so appropriate message is shown 
+                track.status = "Date in wrong format"
+                track.put()
+
+            except GpxFormatException:
+                #if error occurs set status so appropriate message is shown 
+                track.status = "Unable to parse gpx"
+                track.put()
        
 
 class StatHandler(webapp2.RequestHandler):

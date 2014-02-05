@@ -27,6 +27,7 @@ class Track(ndb.Model):
     track_name = ndb.StringProperty()
     creation_date = ndb.DateProperty(auto_now_add=True)
     blob_key =ndb.BlobKeyProperty()
+    status = ndb.StringProperty()
      
 
 class TrackStatistic(ndb.Model):

@@ -8,6 +8,7 @@ Module for processing .gpx files
 
 from xml.dom.minidom import parseString, parse
 from datetime import datetime,timedelta
+from errors import GpxFormatException,GpxDateFormatException
 import math
 
 
@@ -50,10 +51,11 @@ class GPXReader():
         '''
         Processes gpx track and returns list of Track objects 
         '''
-        doc = parseString(gpxstring)
-        trkList = doc.getElementsByTagName('trk')
-        tracks = []
+       
         try:
+            doc = parseString(gpxstring)
+            trkList = doc.getElementsByTagName('trk')
+            tracks = []
             for trkNode in trkList:
                 wpList = []
                 tracks.append(Track(trkNode.getElementsByTagName('name')[0]
@@ -83,15 +85,17 @@ class GPXReader():
                                             try:
                                                 wp.time = datetime.strptime(wpAtrr.firstChild.nodeValue,'%Y-%m-%dT%H:%M:%S.%fZ') 
                                             except:
-                                                raise Exception('Datetime format error')
+                                                raise GpxDateFormatException()
                                                 
                                             
                                         
                                 tracks[-1].wpList.append(wp)
             return tracks
         #TODO better exception handling
+        except GpxDateFormatException as e:
+            raise e
         except:
-            raise Exception('File format error')
+            raise GpxFormatException()
         
     
 
@@ -130,12 +134,13 @@ class GPXCalculation():
         wpList = self.track.wpList;
         priv = wpList[0]
         for wp in wpList[1:]:
-            diff = wp.elev - priv.elev
-            if diff > 0:
-                if self.distance_between_places(priv.lon,priv.lat,wp.lon,wp.lat)> 0.003:
-                    total += diff
+            if(wp.elev != ""):
+                diff = wp.elev - priv.elev
+                if diff > 0:
+                    if self.distance_between_places(priv.lon,priv.lat,wp.lon,wp.lat)> 0.003:
+                        total += diff
                         
-            priv = wp
+                priv = wp
 
         return total;
         
@@ -148,11 +153,11 @@ class GPXCalculation():
         wpList = self.track.wpList
         priv = wpList[0]
         for wp in wpList:
-                
-            dt = wp.time - priv.time
-            if self.distance_between_places(priv.lon,priv.lat,wp.lon,wp.lat) > 0.003 and dt.total_seconds() < 105:
-                total += dt
-            priv = wp
+            if(wp.time != ""):
+                dt = wp.time - priv.time
+                if self.distance_between_places(priv.lon,priv.lat,wp.lon,wp.lat) > 0.003 and dt.total_seconds() < 105:
+                    total += dt
+                priv = wp
         return total
     
     def avr_speed(self):
@@ -163,7 +168,7 @@ class GPXCalculation():
         total_time = self.total_time()
         if total_distance == 0:
             return 0
-        if total_time == 0:
+        if total_time.total_seconds() == 0:
             return 0
         
         return total_distance/(total_time.total_seconds() * 0.000277778)
@@ -173,7 +178,8 @@ class GPXCalculation():
         Calculates max elevation 
         '''
         m = -100
-        m = max([x.elev for x in self.track.wpList])
+        m = max([x.elev for x in self.track.wpList if x.elev != ""] + [-100])
+        
         return m   
      
     def distance_between_places(self,lon1, lat1, lon2,  lat2):
@@ -192,8 +198,5 @@ class GPXCalculation():
         Degree to radians
         '''
         return x * PIx / 180;
-
-
-
 
         

@@ -21,6 +21,7 @@ from google.appengine.ext.blobstore import BlobInfo
 from datetime import datetime
 from models import Trip,Track,TrackStatistic
 from gpxManager import GPXReader,GPXCalculation
+from errors import GpxFormatException,GpxDateFormatException
 
 
 #set jinja templates environment
@@ -188,8 +189,6 @@ class CityInfo(webapp2.RequestHandler):
         result = urlfetch.fetch(url)
         data = self.proces(result.content)
        
-
-        
         template_values = {'user': user, 'url': url, 'url_linktext': url_linktext, 'lat':data[0], 'lng':data[1]}
         template = JINJA_ENVIRONMENT.get_template('templates/cities.html')
         self.response.write(template.render(template_values))
@@ -224,7 +223,7 @@ class OneTrip(webapp2.RequestHandler):
         
         #get tracks for trip
         track_query = Track.query(ancestor=tripk)
-        tracks = track_query.fetch(10)
+        tracks = track_query.fetch(20)
         #get number of tracks
         num = len(tracks)
         
@@ -232,6 +231,7 @@ class OneTrip(webapp2.RequestHandler):
         bli = []
         for track in tracks:
             bli.append(BlobInfo(track.blob_key))
+                  
         #create template
         template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'trip':trip,'upload':upload_url,
                            'tracks':tracks,'blobs':bli,'num':num,'trip_user':trip_user}
@@ -253,8 +253,14 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         #get trip_id from hidden filed in form
         trip_key = self.request.get('trip_id')
         tripk = ndb.Key(urlsafe=trip_key)
+        
+        #updetr trip status
+        trip = tripk.get()
+        trip.put()
+        
         #create new track which parent is current track 
-        track = Track(parent=tripk,track_name=self.request.get('trip_name'),blob_key=blob_info.key())   
+        track = Track(parent=tripk,track_name=self.request.get('trip_name'),blob_key=blob_info.key()) 
+        track.status = "Processing track, try again later"  
         track.put()
         
         track_key = track.key
@@ -335,7 +341,9 @@ class UpdateTripHandler(webapp2.RequestHandler):
         return cities
 
 class DeleteTripHandler(webapp2.RequestHandler):
-    
+    '''
+    Delete trip and all of his tracks and statistics
+    '''
     def get(self):
         
         #get specific trip     
@@ -347,8 +355,14 @@ class DeleteTripHandler(webapp2.RequestHandler):
         track_query = Track.query(ancestor=tripk)
         tracks = track_query.fetch()
         for track in tracks:
+            #delete .gpx files from blobstore
             bolob = track.blob_key
             blobstore.delete(bolob)
+            #delete statistic
+            for item in TrackStatistic.query(TrackStatistic.track == track.key):
+                item.key.delete()
+            
+            #delete track
             track.key.delete()
         
         #redirect to mytrips because showing all tips will only be consistent in scope of user
@@ -360,30 +374,82 @@ class DeleteTripHandler(webapp2.RequestHandler):
 
             
 class TrackParserHandler(webapp2.RequestHandler):
-    
+    '''
+    Calculates statistic for uploaded .gpx file
+    Called from push queue
+    TODO transaction when writing in db
+    '''
     def post(self):
         
+#         time.sleep(60)
+        
+        #get track
         key = self.request.get('key')
         track_key = ndb.Key(urlsafe=key)
         track = track_key.get()
+        
+        #read data from uploaded file
         blob_reader = blobstore.BlobReader(track.blob_key)
         data = blob_reader.read()
-        g = GPXReader()
-        a = g.parse_gpx(data)
+        try:
+            g = GPXReader()
+            a = g.parse_gpx(data)
         
-        for item in a:
-            gc = GPXCalculation(item)
-        
-            ts = TrackStatistic(track=track_key,name=item.name)
-            ts.total_distance = gc.calculate_distance()
-            ts.total_time = datetime.fromtimestamp(gc.total_time().total_seconds())
-            ts.avr_speed = gc.avr_speed()
-            ts.total_climb = gc.total_climb()
-            ts.max_elev = gc.max_elev()
-            ts.put()
+            for item in a:
+            
+                gc = GPXCalculation(item)
+                ts = TrackStatistic(track=track_key,name=item.name)
+                ts.total_distance = gc.calculate_distance()
+                ts.total_time = datetime.fromtimestamp(gc.total_time().total_seconds())
+                ts.avr_speed = gc.avr_speed()
+                ts.total_climb = gc.total_climb()
+                ts.max_elev = gc.max_elev()
+                ts.put()
+            
+            #change status to indicate that calculation is done
+            track.status = ""
+            track.put()
+            
+        except GpxDateFormatException:
+            #if error occurs set status so appropriate message is shown 
+            track.status = "Date in wrong format"
+            track.put()
+        except GpxFormatException:
+            #if error occurs set status so appropriate message is shown 
+            track.status = "Unable to parse gpx"
+            track.put()
        
 
-
+class StatHandler(webapp2.RequestHandler):
+    '''
+    Show statistics for one track
+    '''
+    def get(self):
+        
+        user = users.get_current_user()
+        #check if user is logged in and creates appropriate url
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+        
+        #get specific track   
+        track_key = self.request.get('track_id')
+        trackk = ndb.Key(urlsafe=track_key)
+        track = trackk.get()
+        
+        #get statistic
+        track_stat_query= TrackStatistic.query(TrackStatistic.track == trackk)
+        stat = track_stat_query.fetch()
+        
+               
+        #create template
+        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'stat': stat,'status':track.status}
+        template = JINJA_ENVIRONMENT.get_template('templates/stat.html')
+     
+        self.response.write(template.render(template_values))
 
 
 

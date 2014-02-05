@@ -20,10 +20,11 @@
 			 	<a href='/cityinfo?city={{city}}'  >{{city}},</a> 
 			{% endfor %}
           </div>
+         
           <div class="cleaner">
           <ul>
           	{% for i in range(num) %}
-				<li><b>{{tracks[i].track_name}}</b><br> <a href="/serve/{{blobs[i].key()}}">{{blobs[i].filename}}</a></li>
+				<li><b>{{tracks[i].track_name}}</b><br><a href="/serve/{{blobs[i].key()}}">{{blobs[i].filename}}</a> <a href="/stat?track_id={{tracks[i].key.urlsafe()}}">statistic</a></li>
 			{% endfor %}
 			</ul>
           </div>

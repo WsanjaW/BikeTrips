@@ -222,7 +222,7 @@ class OneTrip(webapp2.RequestHandler):
         trip_user = tripk.parent().id()
         
         #get tracks for trip
-        track_query = Track.query(ancestor=tripk)
+        track_query = Track.query(ancestor=tripk).order(-Track.creation_date)
         tracks = track_query.fetch(20)
         #get number of tracks
         num = len(tracks)
@@ -265,8 +265,8 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         
         track_key = track.key
         #Add the task to the default queue.
-        taskqueue.add(url='/worker', params={'key': track_key.urlsafe()})
-        taskqueue.add(url='/worker', params={'key': track_key.urlsafe()})
+        taskqueue.add(url='/worker', params={'key': track_key.urlsafe()},target='mybackend')
+        
         #get cookie with value of page from where upload is started
         cookie_value = self.request.cookies.get('redirect_url')
         self.redirect(str(cookie_value))
@@ -389,6 +389,7 @@ class TrackParserHandler(webapp2.RequestHandler):
         track_key = ndb.Key(urlsafe=key)
         track = track_key.get()
         
+        #check if track already has statistic in order for task to be idempotent 
         track_stat_query= TrackStatistic.query(TrackStatistic.track == track_key)
         stat = track_stat_query.fetch(1)
         if stat == []:

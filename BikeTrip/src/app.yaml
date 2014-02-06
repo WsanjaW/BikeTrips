@@ -12,6 +12,9 @@ handlers:
 - url: /addtrip
   script: biketrip.application
   login: required
+- url: /worker
+  script: backend.application
+  login: admin
 - url: /.*
   script: biketrip.application
 

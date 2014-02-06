@@ -222,7 +222,7 @@ class OneTrip(webapp2.RequestHandler):
         trip_user = tripk.parent().id()
         
         #get tracks for trip
-        track_query = Track.query(ancestor=tripk)
+        track_query = Track.query(ancestor=tripk).order(-Track.creation_date)
         tracks = track_query.fetch(20)
         #get number of tracks
         num = len(tracks)
@@ -266,7 +266,7 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         track_key = track.key
         #Add the task to the default queue.
         taskqueue.add(url='/worker', params={'key': track_key.urlsafe()})
-        taskqueue.add(url='/worker', params={'key': track_key.urlsafe()})
+       
         #get cookie with value of page from where upload is started
         cookie_value = self.request.cookies.get('redirect_url')
         self.redirect(str(cookie_value))
@@ -382,7 +382,7 @@ class TrackParserHandler(webapp2.RequestHandler):
                
     def post(self):
         
-        time.sleep(30)
+        #time.sleep(30)
         
         #get track
         key = self.request.get('key')

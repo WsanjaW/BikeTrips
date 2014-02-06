@@ -13,7 +13,7 @@ class Trip(ndb.Model):
     '''
     
     trip_name = ndb.StringProperty()
-    creation_date = ndb.DateProperty(auto_now_add=True)
+    creation_date = ndb.DateTimeProperty(auto_now_add=True)
     from_date = ndb.DateProperty();
     to_date = ndb.DateProperty();
     trip_avatar = ndb.BlobProperty()
@@ -25,7 +25,7 @@ class Trip(ndb.Model):
 class Track(ndb.Model):
     
     track_name = ndb.StringProperty()
-    creation_date = ndb.DateProperty(auto_now_add=True)
+    creation_date = ndb.DateTimeProperty(auto_now_add=True)
     blob_key =ndb.BlobKeyProperty()
     status = ndb.StringProperty()
      

@@ -1,0 +1,3 @@
+backends:
+- name: mybackend
+  options: dynamic

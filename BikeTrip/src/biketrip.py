@@ -1,6 +1,6 @@
 import webapp2
 
-from handlers import ShowTrips,AddTrip,ImageHandler,CityInfo,OneTrip,UploadHandler,DownloadHandler,UpdateTripHandler,DeleteTripHandler,TrackParserHandler,StatHandler
+from handlers import ShowTrips,AddTrip,ImageHandler,CityInfo,OneTrip,UploadHandler,DownloadHandler,UpdateTripHandler,DeleteTripHandler,StatHandler
 
 
 application = webapp2.WSGIApplication([
@@ -14,7 +14,6 @@ application = webapp2.WSGIApplication([
      ('/serve/([^/]+)?', DownloadHandler),
      ('/update', UpdateTripHandler),
      ('/deleteTrip', DeleteTripHandler),
-     ('/worker', TrackParserHandler),
      ('/stat', StatHandler),
 
 ], debug=True)

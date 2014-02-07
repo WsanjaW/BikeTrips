@@ -265,7 +265,7 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         
         track_key = track.key
         #Add the task to the default queue.
-        taskqueue.add(url='/worker', params={'key': track_key.urlsafe()})
+        taskqueue.add(url='/worker', params={'key': track_key.urlsafe()},target="mybackend")
        
         #get cookie with value of page from where upload is started
         cookie_value = self.request.cookies.get('redirect_url')

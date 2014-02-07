@@ -5,7 +5,11 @@
         <div class="p_box">
         	<h2>{{trip.trip_name}}</h2>
         	<p><b>From:</b> <i>{{trip.from_date}}</i> <b>To:</b> <i>{{trip.to_date}}</i></p>
+        	{% if trip.trip_avatar %}
           <div class="image_frame"><img src="/img?img_id={{trip.key.urlsafe()}}" alt="image 3" /></div>
+          	{% else %}
+          	<div class="image_frame"></div>
+          	{% endif %}
        		{{trip.description}}<a href="/trip?trip_id={{trip.key.urlsafe()}}" class="read_more"></a>
           <div class="cleaner">Cities:
      	    {% for city in trip.cities %}

@@ -17,6 +17,8 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import blobstore
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.ext.blobstore import BlobInfo
+from google.appengine.datastore.datastore_query import Cursor
+
 
 from datetime import datetime
 from models import Trip,Track,TrackStatistic
@@ -65,10 +67,12 @@ class ShowTrips(webapp2.RequestHandler):
             trips_query = Trip.query(Trip.visibility==True).order(-Trip.creation_date)
         
         #TODO something other then 10 
-        trips = trips_query.fetch(10)
+#         trips = trips_query.fetch(10)
+       
+        trips, next_curs, more = trips_query.fetch_page(5)
 
         #return index page
-        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'trips':trips}
+        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'trips':trips,'cursor':next_curs,'more':more}
         template = JINJA_ENVIRONMENT.get_template('templates/index.html')
         self.response.write(template.render(template_values))
     
@@ -226,6 +230,13 @@ class OneTrip(webapp2.RequestHandler):
         tracks = track_query.fetch(20)
         #get number of tracks
         num = len(tracks)
+        distance = 0
+        #get statistic for all tracks
+        for track in tracks:
+            track_stat_query= TrackStatistic.query(TrackStatistic.track == track.key)
+            stat = track_stat_query.fetch()
+            for s in stat:
+                distance += s.total_distance
         
         #get blobInfo objects from blob_key
         bli = []
@@ -234,7 +245,7 @@ class OneTrip(webapp2.RequestHandler):
                   
         #create template
         template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'trip':trip,'upload':upload_url,
-                           'tracks':tracks,'blobs':bli,'num':num,'trip_user':trip_user}
+                           'tracks':tracks,'blobs':bli,'num':num,'trip_user':trip_user,'d':distance}
         template = JINJA_ENVIRONMENT.get_template('templates/onetrip.html')
         
         #set cookie value to this page url
@@ -267,9 +278,8 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         #Add the task to the default queue.
         taskqueue.add(url='/worker', params={'key': track_key.urlsafe()},target="mybackend")
        
-        #get cookie with value of page from where upload is started
-        cookie_value = self.request.cookies.get('redirect_url')
-        self.redirect(str(cookie_value))
+
+        self.redirect(self.request.referer)
 
 
 class DownloadHandler(blobstore_handlers.BlobstoreDownloadHandler):
@@ -448,13 +458,79 @@ class StatHandler(webapp2.RequestHandler):
         #get statistic
         track_stat_query= TrackStatistic.query(TrackStatistic.track == trackk)
         stat = track_stat_query.fetch()
-        
+       
+        #set cookie value to this page url
+        self.response.set_cookie('redirect_url', self.request.url)
                
         #create template
-        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'stat': stat,'status':track.status}
+        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'stat': stat,'status':track.status,'back':self.request.referer}
         template = JINJA_ENVIRONMENT.get_template('templates/stat.html')
      
         self.response.write(template.render(template_values))
 
+class DeleteTrackHandler(webapp2.RequestHandler):
+    '''
+    Delete track and all of his statistics
+    '''
+    def get(self):
+        
+        #get specific track    
+        track_key = self.request.get('track_id')
+        trakk = ndb.Key(urlsafe=track_key)
+        track = trakk.get()
+       
 
+        #delete .gpx files from blobstore
+        bolob = track.blob_key
+        blobstore.delete(bolob)
+        #delete statistic
+        for item in TrackStatistic.query(TrackStatistic.track == track.key):
+            item.key.delete()
+            
+        #delete track
+        track.key.delete()
+        
 
+        self.redirect(self.request.referer)
+
+class LoadTripHandler(webapp2.RequestHandler):
+    '''
+    Load trips. Used with ajax call
+    '''
+    def post(self):
+        
+        trips_query = Trip.query(Trip.visibility==True).order(-Trip.creation_date)
+               
+        #get cursor to fetch only new trips
+        curs = Cursor(urlsafe=self.request.get('cursor'))
+        trips, next_curs, more = trips_query.fetch_page(5, start_cursor=curs)
+       
+        data = self.create_trip_html(trips)
+        # Create an array
+        array = {'trips': data,'next_curs':next_curs.urlsafe(),'more':more}
+       
+        # Output the JSON
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(json.dumps(array))
+          
+    def create_trip_html(self,trips):
+        '''
+        Creates html for new trips
+        '''
+        data=""
+        for trip in trips:
+            data +='<div class="p_box">'
+            data +='<h2>' + trip.trip_name +'</h2>'
+            data += '<p><b>From:</b> <i>'+str(trip.from_date)+'</i> <b>To:</b> <i>' +str(trip.to_date) +'</i></p>'
+            if trip.trip_avatar:
+                data +='<div class="image_frame"><img src="/img?img_id='+trip.key.urlsafe()+'" alt="image 3" /></div>'
+            else:
+                data +='<div class="image_frame"></div>'
+              
+            data += trip.description+'<a href="/trip?trip_id='+trip.key.urlsafe()+'" class="read_more"></a>'
+            data +='<div class="cleaner">Cities:'
+            for city in trip.cities:
+                data +='<a href="/cityinfo?city='+city+'" >'+city+',</a>' 
+#             
+            data +="</div></div>"
+        return data

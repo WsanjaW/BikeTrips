@@ -68,9 +68,9 @@ h6 { font-size: 12px; margin: 0 0 5px; padding: 0; }
 
 #templatemo_menu {
 	clear: both;
-	width: 960px;
+	width: 405px;
 	height: 36px;
-	background: url(images/templatemo_menu.png) no-repeat;
+	/*background: url(images/templatemo_menu.png) no-repeat;*/
 }
 
 #templatemo_menu ul {
@@ -161,8 +161,9 @@ h6 { font-size: 12px; margin: 0 0 5px; padding: 0; }
 .p_box h2 { font-size: 18px; margin-bottom: 15px }
 .image_frame { display: inline-block; float: left; margin-right: 20px; width: 124px; height: 127px; background: url(images/templatemo_image_frame.png) no-repeat }
 .image_frame img { padding: 18px 0 0 19px; width: 86px; height: 86px }
-a.read_more { display: block; margin-top: 40px; float: right; width: 118px; height: 40px; background: url(images/templatemo_read_more.png) no-repeat }
-
+a.read_more { display: block; margin-top: 40px; float: right; width: 118px; height: 40px; background: url(images/templatemo_read_more2.png) no-repeat }
+a.add_track {display: block; width: 118px; height: 40px; background: url(images/templatemo_read_more2.png) no-repeat }
+a.update_trip {display: block; width: 118px; height: 40px;float: left; background: url(images/templatemo_read_more2.png) no-repeat }
 .sb_box { padding-bottom: 15px; margin-bottom: 15px }
 .sb_ads { display: block; margin-bottom: 20px }
 

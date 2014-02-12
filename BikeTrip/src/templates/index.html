@@ -1,6 +1,27 @@
 {% extends "templates/base.html" %}
+{% block extrahead %} 
+<script src="/static/js/jquery-1.10.2.js"></script>
+<script type="text/javascript">
+var cursor = "{{cursor.urlsafe()}}";
+
+$(document).ready(function(){
+  $("button").click(function(){
+    $.post("/loadtrips",{'cursor':cursor},function(data,status){
+    
+      	var a = $('#l').html();
+     	cursor = data.next_curs;
+     	$('#l').html(a+data.trips);
+     	if(data.more == false){
+     		$('#loadb').hide();
+      	}
+    });
+  });
+});
+</script>
+{% endblock %}
 {% block content %}
       <div class="content_title"><span></span>Trips</div>
+      <label id="l">
       	{% for trip in trips %} 
         <div class="p_box">
         	<h2>{{trip.trip_name}}</h2>
@@ -18,5 +39,10 @@
           </div>
 		</div>
        {% endfor %} 
-   
+       
+   		</label>
+   		{% if more %}
+       
+	   <button id="loadb">Load more</button>
+       {% endif %}
 {% endblock %}

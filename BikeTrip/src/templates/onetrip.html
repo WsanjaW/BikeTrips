@@ -13,6 +13,7 @@
         <div class="p_box">
         	<h2 id="trip_name">{{trip.trip_name}}</h2>
         	<p><b>From:</b> <i>{{trip.from_date}}</i> <b>To:</b> <i>{{trip.to_date}}</i></p>
+        	{{d}}
           	{% if trip.trip_avatar %}
           		<div class="image_frame"><img src="/img?img_id={{trip.key.urlsafe()}}" alt="image 3" /></div>
           	{% else %}
@@ -28,15 +29,24 @@
           <div class="cleaner">
           <ul>
           	{% for i in range(num) %}
-				<li><b>{{tracks[i].track_name}}</b><br><a href="/serve/{{blobs[i].key()}}">{{blobs[i].filename}}</a> <a href="/stat?track_id={{tracks[i].key.urlsafe()}}">statistic</a></li>
+				<li><b>{{tracks[i].track_name}}</b>
+				<br>{{blobs[i].filename}}
+              		<a href="/stat?track_id={{tracks[i].key.urlsafe()}}">Statistic</a>
+              		<a href="/serve/{{blobs[i].key()}}">Download track</a>
+              		<a href="/deleteTrack?track_id={{tracks[i].key.urlsafe()}}">Delete track</a></li>
 			{% endfor %}
 			</ul>
           </div>
           {% if user %}
           	{% if user.user_id() == trip_user %}
-          		<a id="click" onclick="addfileform()">Add Track</a>
-          		<a id="click1" onclick="addupdateform()">Update Trip</a>
-          		<a id="click2" href="/deleteTrip?trip_id={{trip.key.urlsafe()}}">Delete Trip</a>
+          		<div id="templatemo_menu">
+            		<ul>
+              			<li><a style="cursor: pointer;" id="click" onclick="addfileform()" >Add Track</a></li>
+              			<li><a style="cursor: pointer;" id="click1" onclick="addupdateform()">Update Trip</a></li>
+              			<li><a id="clickDel" href="/deleteTrip?trip_id={{trip.key.urlsafe()}}" >Delete Trip</a></li>
+              			
+            		</ul>
+        		</div> <!-- end of templatemo_menu -->
           	{% endif %}
           {% endif %}
 		</div>

@@ -33,7 +33,11 @@
 				<br>{{blobs[i].filename}}
               		<a href="/stat?track_id={{tracks[i].key.urlsafe()}}">Statistic</a>
               		<a href="/serve/{{blobs[i].key()}}">Download track</a>
-              		<a href="/deleteTrack?track_id={{tracks[i].key.urlsafe()}}">Delete track</a></li>
+              		{% if user %}
+              			{% if user.user_id() == trip_user %}
+              				<a href="/deleteTrack?track_id={{tracks[i].key.urlsafe()}}">Delete track</a></li>
+              			{% endif %}
+              		{% endif %}
 			{% endfor %}
 			</ul>
           </div>

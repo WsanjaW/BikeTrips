@@ -23,7 +23,9 @@ class Trip(ndb.Model):
     
 
 class Track(ndb.Model):
-    
+    '''
+    Models a Track
+    '''
     track_name = ndb.StringProperty()
     creation_date = ndb.DateTimeProperty(auto_now_add=True)
     blob_key =ndb.BlobKeyProperty()
@@ -31,11 +33,16 @@ class Track(ndb.Model):
      
 
 class TrackStatistic(ndb.Model):
-    
+    '''
+    Models Statistic.
+    *Has reference to Track to provide one-to-many relationship
+    *TrackStatistic dosen't belongs to same group as corresponding track
+    *total_time is StringProperty because it measure duration, so no other formats were appropriate
+    '''
     track = ndb.KeyProperty(kind=Track)
     name = ndb.StringProperty()
     total_distance = ndb.FloatProperty()
-    total_time = ndb.DateTimeProperty()
+    total_time = ndb.StringProperty()
     avr_speed = ndb.FloatProperty()
     total_climb = ndb.FloatProperty()
     max_elev = ndb.FloatProperty()

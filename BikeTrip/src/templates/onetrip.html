@@ -13,13 +13,28 @@
         <div class="p_box">
         	<h2 id="trip_name">{{trip.trip_name}}</h2>
         	<p><b>From:</b> <i>{{trip.from_date}}</i> <b>To:</b> <i>{{trip.to_date}}</i></p>
-        	{{d}}
           	{% if trip.trip_avatar %}
           		<div class="image_frame"><img src="/img?img_id={{trip.key.urlsafe()}}" alt="image 3" /></div>
           	{% else %}
           		<div class="image_frame"></div>
           	{% endif %}
        		{{trip.description}}
+       		<ol style="font-size:20px;">
+				<li>Distance: <b> {{ "{0:0.2f}".format(stats[0].total_distance)}} km</b></li>
+				{% if stats[0].total_time %}
+				<li>Total time: <b>{{stats[0].total_time}}</b></li>
+				{% else %}
+				<li>Total time: <b>/</b></li>
+				{% endif %}
+				<li>Avr speed: <b>{{"{0:0.2f}".format(stats[0].avr_speed)}} km/h</b></li>
+				<li>Total climb: <b>{{"{0:0.0f}".format(stats[0].total_climb)}} m</b></li>
+				{#{% if stats[0].max_elev == -100 %}
+				<li>Max elevation: <b>/</b></li>
+				{% else %}
+				<li>Max elevation: <b>{{"{0:0.0f}".format(stats[0].max_elev)}} m</b></li>
+				{% endif %}
+				#}
+			</ol>
           <div class="cleaner" id='cities'>Cities:
      	    {% for city in trip.cities %}
 			 	<a href='/cityinfo?city={{city}}'  >{{city}},</a> 

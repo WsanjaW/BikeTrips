@@ -14,7 +14,7 @@
         	<h2>{{s.name}}</h2>
 			<ol style="font-size:20px;">
 				<li>Distance: <b> {{ "{0:0.2f}".format(s.total_distance)}} km</b></li>
-				<li>Total time: <b>{{s.total_time.time()}}</b></li>
+				<li>Total time: <b>{{s.total_time}}</b></li>
 				<li>Avr speed: <b>{{"{0:0.2f}".format(s.avr_speed)}} km/h</b></li>
 				<li>Total climb: <b>{{"{0:0.0f}".format(s.total_climb)}} m</b></li>
 				{% if s.max_elev == -100 %}

@@ -2,8 +2,9 @@
 {% block extrahead %} 
 <script src="/static/js/jquery-1.10.2.js"></script>
 <script type="text/javascript">
+{% if cursor %}
 var cursor = "{{cursor.urlsafe()}}";
-
+{% endif %}
 $(document).ready(function(){
   $("button").click(function(){
     $.post("/loadtrips",{'cursor':cursor},function(data,status){
@@ -31,7 +32,27 @@ $(document).ready(function(){
           	{% else %}
           	<div class="image_frame"></div>
           	{% endif %}
-       		{{trip.description}}<a href="/trip?trip_id={{trip.key.urlsafe()}}" class="read_more"></a>
+       		{{trip.description}}
+       		{% if stats %}
+       		{% if stats[trip.key]!=[] %}
+       		<ol style="font-size:20px;">
+				<li>Distance: <b> {{ "{0:0.2f}".format(stats[trip.key][0].total_distance)}} km</b></li>
+				{% if stats[trip.key][0].total_time %}
+				<li>Total time: <b>{{stats[trip.key][0].total_time}}</b></li>
+				{% else %}
+				<li>Total time: <b>/</b></li>
+				{% endif %}
+				<li>Avr speed: <b>{{"{0:0.2f}".format(stats[trip.key][0].avr_speed)}} km/h</b></li>
+				<li>Total climb: <b>{{"{0:0.0f}".format(stats[trip.key][0].total_climb)}} m</b></li>
+				<!--{% if stats[trip.key][0].max_elev == -100 %}
+				 <li>Max elevation: <b>/</b></li> 
+				{% else %}
+				<li>Max elevation: <b>{{"{0:0.0f}".format(stats[trip.key][0].max_elev)}} m</b></li>
+				{% endif %}-->
+			</ol>
+			{% endif %}
+			{% endif %}
+       		<a href="/trip?trip_id={{trip.key.urlsafe()}}" class="read_more"></a>
           <div class="cleaner">Cities:
      	    {% for city in trip.cities %}
 			 	<a href='/cityinfo?city={{city}}' >{{city}},</a> 

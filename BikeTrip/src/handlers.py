@@ -68,15 +68,10 @@ class ShowTrips(webapp2.RequestHandler):
         else:
             trips_query = Trip.query(Trip.visibility==True).order(-Trip.creation_date)
               
-        trips, next_curs, more = trips_query.fetch_page(5)
+        trips, next_curs, more = trips_query.fetch_page(1)
         
-        tripsstats = {}
-        #get all statistics
-        for trip in trips:
-            stat_query = TrackStatistic.query(ancestor=trip.key).fetch(1)
-            tripsstats[trip.key]=stat_query
         #return index page
-        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'trips':trips,'cursor':next_curs,'more':more,'stats':tripsstats}
+        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'trips':trips,'cursor':next_curs,'more':more}
         template = JINJA_ENVIRONMENT.get_template('templates/index.html')
         self.response.write(template.render(template_values))
     
@@ -129,16 +124,11 @@ class AddTrip(webapp2.RequestHandler):
         else:
             trip.visibility = False
         
+        #create statistic for trip 
+        trip.trip_statistic = TrackStatistic(name="Trip Stat",total_distance=0,total_time="",
+                                             avr_speed=0,total_climb=0,max_elev=-100)
         trip.put()
-        #create statistic for whole trip 
-        ts = TrackStatistic(parent=trip.key,name=trip.trip_name)
-        ts.total_distance = 0
-        ts.total_time = ""
-        ts.avr_speed = 0
-        ts.total_climb = 0
-        ts.max_elev = -100
-        ts.put()
-       
+               
         #redirect to mytrips because showing all tips will only be consistent in scope of user
         # and only eventually consistent for whole datastore  
         self.redirect('/alltrips?mytrips=True')
@@ -242,8 +232,8 @@ class OneTrip(webapp2.RequestHandler):
         trip_key = self.request.get('trip_id')
         tripk = ndb.Key(urlsafe=trip_key)
         trip = tripk.get()
-        
-        #get id of user for given track
+       
+        #get id of user for given trip
         trip_user = tripk.parent().id()
         
         #get tracks for trip
@@ -389,14 +379,11 @@ class DeleteTripHandler(webapp2.RequestHandler):
             bolob = track.blob_key
             blobstore.delete(bolob)
             #delete statistic
-            for item in TrackStatistic.query(TrackStatistic.track == track.key):
+            for item in TrackStatistic.query(ancestor=track.key):
                 item.key.delete()
             
             #delete track
             track.key.delete()
-        
-        stat_query = TrackStatistic.query(ancestor=trip.key).fetch(1)
-        stat_query[0].key.delete()
         
         #redirect to mytrips because showing all tips will only be consistent in scope of user
         # and only eventually consistent for whole datastore  
@@ -423,15 +410,11 @@ class TrackParserHandler(webapp2.RequestHandler):
         track_key = ndb.Key(urlsafe=key)
         track = track_key.get()
         
-        track_stat_query= TrackStatistic.query(TrackStatistic.track == track_key)
+        #to ensure immutability
+        track_stat_query= TrackStatistic.query(ancestor=track_key)
         stat = track_stat_query.fetch(1)
         if stat == []:
-            
-            #get global statistic
-            stat_query = TrackStatistic.query(ancestor=track.key.parent()).fetch(1)
-           
-            
-            
+
             #read data from uploaded file
             blob_reader = blobstore.BlobReader(track.blob_key)
             data = blob_reader.read()
@@ -442,46 +425,27 @@ class TrackParserHandler(webapp2.RequestHandler):
                 for item in a:
             
                     gc = GPXCalculation(item)
-                    ts = TrackStatistic(track=track.key,name=item.name)
+                    ts = TrackStatistic(parent=track.key,name=item.name)
                     total_distance = gc.calculate_distance()
                     ts.total_distance = total_distance
-                    stat_query[0].total_distance += total_distance
-                    
                     #get track time
                     total_time = gc.total_time().total_seconds()
                     #convert time from seconds to string to match db format 
                     str_time = helper.sec_to_time(total_time)   
                     ts.total_time = str_time
-                    #get current trip time           
-                    global_time = helper.time_to_sec(stat_query[0].total_time)
-                    #add time and return it to string
-                    stat_query[0].total_time = helper.sec_to_time(global_time+total_time)
                     avr_speed = gc.avr_speed()
                     ts.avr_speed = avr_speed
-                    
-                    #set trip average if time was not zero
-                    if(helper.time_to_sec(stat_query[0].total_time) != 0):
-                        stat_query[0].avr_speed = stat_query[0].total_distance/(helper.time_to_sec(stat_query[0].total_time) * 0.000277778)
-                    else:
-                        stat_query[0].avr_speed = 0
-                        
                     total_climb = gc.total_climb()
                     ts.total_climb = total_climb
-                    
-                    stat_query[0].total_climb += total_climb
-                    #TODO something with max elevation 
                     max_elev = gc.max_elev()
                     ts.max_elev = max_elev
-                    if max_elev > stat_query[0].max_elev:
-                        stat_query[0].max_elev = max_elev
                    
-                    stat_query[0].put()
                     ts.put()
             
                 #change status to indicate that calculation is done
                 track.status = ""
                 track.put()
-                
+               
             
             except GpxDateFormatException:
                 #if error occurs set status so appropriate message is shown 
@@ -492,6 +456,12 @@ class TrackParserHandler(webapp2.RequestHandler):
                 #if error occurs set status so appropriate message is shown 
                 track.status = "Unable to parse gpx"
                 track.put()
+            
+            #if track is added to db calculate statistic for whole trip
+            helper.calculate_trip_stat(track.key.parent())
+            
+            
+            
        
         
 
@@ -516,7 +486,7 @@ class StatHandler(webapp2.RequestHandler):
         track = trackk.get()
         
         #get statistic
-        track_stat_query= TrackStatistic.query(TrackStatistic.track == trackk)
+        track_stat_query= TrackStatistic.query(ancestor=trackk)
         stat = track_stat_query.fetch()
        
         #set cookie value to this page url
@@ -543,28 +513,16 @@ class DeleteTrackHandler(webapp2.RequestHandler):
         #delete .gpx files from blobstore
         bolob = track.blob_key
         blobstore.delete(bolob)
-        #subtract from global statistic
-        stat_query = TrackStatistic.query(ancestor=track.key.parent()).fetch(1)
-        
         
         #delete statistic
-        for item in TrackStatistic.query(TrackStatistic.track == track.key):
-            stat_query[0].total_distance -= item.total_distance
-            
-            global_time = helper.time_to_sec(stat_query[0].total_time)
-            stat_query[0].total_time = helper.sec_to_time(global_time-helper.time_to_sec(item.total_time))
-         
-            if helper.time_to_sec(stat_query[0].total_time) != 0:
-                stat_query[0].avr_speed = stat_query[0].total_distance/(helper.time_to_sec(stat_query[0].total_time) * 0.000277778)
-            else:
-                stat_query[0].avr_speed = 0
-            stat_query[0].total_climb -= item.total_climb
-            stat_query[0].put()
+        for item in TrackStatistic.query(ancestor=track.key):
             item.key.delete()
             
         #delete track
         track.key.delete()
         
+        #calculate trip statistic
+        helper.calculate_trip_stat(track.key.parent())
 
         self.redirect(self.request.referer)
 
@@ -608,18 +566,18 @@ class LoadTripHandler(webapp2.RequestHandler):
               
             data += trip.description+'<a href="/trip?trip_id='+trip.key.urlsafe()+'" class="read_more"></a>'
             data += '<ol style="font-size:20px;">'
-            data += '<li>Distance: <b>' + "{0:0.2f}".format(stats[trip.key][0].total_distance) + 'km</b></li>'
-            if stats[trip.key][0].total_time:
-                data += '<li>Total time: <b>' + stats[trip.key][0].total_time + '</b></li>'
+            data += '<li>Distance: <b>' + "{0:0.2f}".format(trip.trip_statistic.total_distance) + 'km</b></li>'
+            if trip.trip_statistic.total_time:
+                data += '<li>Total time: <b>' + trip.trip_statistic.total_time + '</b></li>'
             else:
                 data += '<li>Total time: <b>/</b></li>'
-            data += '<li>Avr speed: <b>' + "{0:0.2f}".format(stats[trip.key][0].avr_speed) + 'km/h</b></li>'
-            data += '<li>Total climb: <b>' + "{0:0.0f}".format(stats[trip.key][0].total_climb) + 'm</b></li>'
-#             if stats[trip.key][0].max_elev == -100:
-#                 data += '<li>Max elevation: <b>/</b></li>'
-#             else:
-#                 data += '<li>Max elevation: <b>' + "{0:0.0f}".format(stats[trip.key][0].max_elev) + ' m</b></li>'
-            
+            data += '<li>Avr speed: <b>' + "{0:0.2f}".format(trip.trip_statistic.avr_speed) + 'km/h</b></li>'
+            data += '<li>Total climb: <b>' + "{0:0.0f}".format(trip.trip_statistic.total_climb) + 'm</b></li>'
+            if trip.trip_statistic.max_elev == -100:
+                data += '<li>Max elevation: <b>/</b></li>'
+            else:
+                data += '<li>Max elevation: <b>' + "{0:0.0f}".format(trip.trip_statistic.max_elev) + ' m</b></li>'
+             
             data +='</ol>'
             data +='<div class="cleaner">Cities:'
             for city in trip.cities:

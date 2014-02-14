@@ -33,25 +33,23 @@ $(document).ready(function(){
           	<div class="image_frame"></div>
           	{% endif %}
        		{{trip.description}}
-       		{% if stats %}
-       		{% if stats[trip.key]!=[] %}
+       		
        		<ol style="font-size:20px;">
-				<li>Distance: <b> {{ "{0:0.2f}".format(stats[trip.key][0].total_distance)}} km</b></li>
-				{% if stats[trip.key][0].total_time %}
-				<li>Total time: <b>{{stats[trip.key][0].total_time}}</b></li>
+				<li>Distance: <b> {{ "{0:0.2f}".format(trip.trip_statistic.total_distance)}} km</b></li>
+				{% if trip.trip_statistic.total_time %}
+				<li>Total time: <b>{{trip.trip_statistic.total_time}}</b></li>
 				{% else %}
 				<li>Total time: <b>/</b></li>
 				{% endif %}
-				<li>Avr speed: <b>{{"{0:0.2f}".format(stats[trip.key][0].avr_speed)}} km/h</b></li>
-				<li>Total climb: <b>{{"{0:0.0f}".format(stats[trip.key][0].total_climb)}} m</b></li>
-				<!--{% if stats[trip.key][0].max_elev == -100 %}
+				<li>Avr speed: <b>{{"{0:0.2f}".format(trip.trip_statistic.avr_speed)}} km/h</b></li>
+				<li>Total climb: <b>{{"{0:0.0f}".format(trip.trip_statistic.total_climb)}} m</b></li>
+				{% if trip.trip_statistic.max_elev == -100 %}
 				 <li>Max elevation: <b>/</b></li> 
 				{% else %}
-				<li>Max elevation: <b>{{"{0:0.0f}".format(stats[trip.key][0].max_elev)}} m</b></li>
-				{% endif %}-->
+				<li>Max elevation: <b>{{"{0:0.0f}".format(trip.trip_statistic.max_elev)}} m</b></li>
+				{% endif %}
 			</ol>
-			{% endif %}
-			{% endif %}
+
        		<a href="/trip?trip_id={{trip.key.urlsafe()}}" class="read_more"></a>
           <div class="cleaner">Cities:
      	    {% for city in trip.cities %}

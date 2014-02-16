@@ -35,6 +35,7 @@
 				{% endif %}
 				
 			</ol>
+			<a href="/charts?trip_id={{trip.key.urlsafe()}}">Charts</a>
           <div class="cleaner" id='cities'>Cities:
      	    {% for city in trip.cities %}
 			 	<a href='/cityinfo?city={{city}}'  >{{city}},</a> 

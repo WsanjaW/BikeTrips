@@ -585,3 +585,45 @@ class LoadTripHandler(webapp2.RequestHandler):
 #             
             data +="</div></div>"
         return data
+    
+    
+class ChartsHandler(webapp2.RequestHandler):
+    '''
+    Get data for creating charts
+    '''
+    def get(self):
+        
+        user = users.get_current_user()
+        #check if user is logged in and creates appropriate url
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+        
+        
+        #get specific trip     
+        trip_key = self.request.get('trip_id')
+        tripk = ndb.Key(urlsafe=trip_key)
+        trip = tripk.get()
+               
+        #get statistic
+        track_stat_query= TrackStatistic.query(ancestor=tripk)
+        stats = track_stat_query.fetch()
+        #create data for total climb chart and bubble chart
+        climb_data = []
+        bubble_data = []
+        for s in stats:
+            climb_data.append([s.name,s.total_climb])
+            bubble_data.append([s.key.parent().id(),s.name[0:3].upper(),s.total_distance,s.total_climb,"r1",helper.time_to_sec(s.total_time)])
+        
+       
+        
+        
+        #create template
+        template_values = {'user': user, 'url': url, 'url_linktext': url_linktext,'climb_data':map(json.dumps, climb_data),'bubble_data':map(json.dumps, bubble_data)}
+        template = JINJA_ENVIRONMENT.get_template('templates/charts.html')
+     
+        self.response.write(template.render(template_values))
+    

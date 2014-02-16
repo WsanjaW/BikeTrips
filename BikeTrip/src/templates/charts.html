@@ -1,0 +1,71 @@
+{% extends "templates/base.html" %}
+{% block extrahead %} 
+<script src="/static/js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
+<script type="text/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+</script>
+<script type="text/javascript">
+
+
+var chart;
+var data2;
+var pom;
+function drawVisualization() {
+	
+ 	var data = new google.visualization.DataTable();
+ 	data.addColumn('string', 'Tracks');
+      data.addColumn('number', 'Total Climb'); 
+      //data.addColumn({type:'string', role:'style'});
+      {% for i in climb_data %}
+      data.addRow({{i|safe}});
+      {% endfor %}
+
+  var wrapper = new google.visualization.ChartWrapper({
+    chartType: 'ColumnChart',
+    dataTable: data,
+    options: {'title': 'Total Climb'},
+    containerId: 'visualization'
+  });
+  wrapper.draw();
+  
+  		data2 = new google.visualization.DataTable();
+  		data2.addColumn('string', 'ID');
+
+  		data2.addColumn('number', 'Distance');
+  		data2.addColumn('number', 'Total Climb');
+  		data2.addColumn('string', 'Region');
+  		data2.addColumn('number', 'Time');
+  		
+  		{% for i in bubble_data %}
+      		r = {{i|safe}}.slice(1);
+      		data2.addRow(r);
+      	{% endfor %}
+
+        var options = {
+          title: 'Correlation between life expectancy, fertility rate and population of some world countries (2010)',
+          hAxis: {title: 'Distance'},
+          vAxis: {title: 'Total Climb'},
+          bubble: {textStyle: {fontSize: 11}}
+        };
+
+        chart = new google.visualization.BubbleChart(document.getElementById('chart_div'));
+        // Add our selection handler.
+  		google.visualization.events.addListener(chart, 'select', selectHandler);
+        chart.draw(data2, options);
+  
+}
+function selectHandler() {
+  var selection = chart.getSelection();
+  //window.location.href = "/stat?track_id="+ data2.getFormattedValue(selection[0].row, 0);
+  alert('You selected ' + data2.getFormattedValue(selection[0].row, 0));
+}
+google.setOnLoadCallback(drawVisualization,"s");
+</script>
+{% endblock %}
+{% block content %}
+
+ <div id="visualization" style="width: 600px; height: 400px;"></div>
+ <div id="chart_div" style="width: 600px; height: 400px;"></div>
+
+{% endblock %}

@@ -16,6 +16,12 @@ indexes:
   - name: creation_date
     direction: desc
 
+- kind: TrackStatistic
+  ancestor: yes
+  properties:
+  - name: creation_date
+    direction: desc
+
 - kind: Trip
   properties:
   - name: visibility

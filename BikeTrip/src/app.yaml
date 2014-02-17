@@ -9,17 +9,28 @@ handlers:
   static_dir: static/js
 - url: /static/css
   static_dir: static/css
+# Endpoints handler
+- url: /_ah/spi/.*
+  script: biketrip_api.application
 - url: /addtrip
   script: biketrip.application
   login: required
 - url: /worker
+#Backend handler
   script: backend.application
   login: admin
+#Frontend handler
 - url: /.*
   script: biketrip.application
 
+  
 libraries:
 - name: webapp2
   version: latest
 - name: jinja2
   version: latest
+- name: pycrypto
+  version: latest
+- name: endpoints
+  version: 1.0
+  

@@ -4,6 +4,8 @@ Created on 13.02.2014.
 @author: Sanja
 '''
 from models import Trip,Track,TrackStatistic
+import json
+from google.appengine.ext import ndb
    
 def sec_to_time(time):
     '''
@@ -72,6 +74,81 @@ def calculate_trip_stat(trip_key):
     
     trip.put()
      
-
+def procesCity(json_string):
+    '''
+    Returns (lat,lng) tuple from given json string in format:
+    {
+        "totalResultsCount": 150,
+            "geonames": [{
+        "toponymName": "Zant 0",
+        "fcl": "T",
+        "name": "Zant 0",
+        "countryCode": "DE",
+        "lng": "11.61645",
+        "fcode": "HLL",
+        "geonameId": 7289257,
+        "lat": "49.42775"
+            }]
+    }
+    '''
+    data = json.loads(json_string)
+    try:
+        lat = data['geonames'][0]['lat']
+        lon = data['geonames'][0]['lng']
+        return [float(lat), float(lon)]
+    except:
+        return [0, 0]
   
+def trip_key(trip_userid='0'):
+        '''
+        Constructs a Datastore key for a Trip entity with userid.
+        '''
         
+        return ndb.Key('UserTrip', trip_userid)
+    
+def make_track_tree(id,location,type,season):
+    '''
+    Create tree (http://www.ztree.me/v3/main.php#_zTreeInfo)
+    '''
+    #get all trips
+    trips_query = Trip.query(ancestor=trip_key(id))
+    if location != []:
+        trips_query = trips_query.filter(Trip.trip_tags.location.IN(location))
+    if type != []:
+        trips_query = trips_query.filter(Trip.trip_tags.type.IN(type))
+    if season != []:
+        trips_query = trips_query.filter(Trip.trip_tags.season.IN(season))
+    
+    trips = trips_query.fetch()
+      
+    #create tree structure from trips
+    tree = []
+    i = 1
+    of = 0
+    tree.append({'id':0, 'pId':0, 'name':'My Trips','isParent': 'true','open':'true'})
+    for trip in trips:
+        tree.append({'id':i, 'pId':0, 'name':str(trip.trip_name),'isParent': 'true', 'click':"openTrip('"+ str(trip.key.urlsafe()) +"')"})
+        #get tracks from trip
+        track_query = Track.query(ancestor=trip.key).order(-Track.creation_date)
+        tracks = track_query.fetch(20)
+        for track in tracks:
+            tree.append({'id':i+10+of, 'pId':i, 'name':str(track.track_name),'click':"openTrack('"+ str(track.key.urlsafe()) +"')"})
+            of += 1
+        i += 1
+        
+    return tree
+
+
+def creatList(s):
+    '''
+    Create list from string separated by ","
+    '''
+    l = s.split(',')
+    return l
+def union(l1,l2):
+    '''
+    Makes union of two lists
+    '''
+    l = [x for x in l1 if x not in l2] + l2
+    return l
+    

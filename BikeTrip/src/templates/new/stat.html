@@ -1,0 +1,62 @@
+{% extends "templates/new/base.html" %}
+{% block extrahead %} 
+
+
+{% endblock %}
+{% block content %}
+
+
+
+				<hr class="section-heading-spacer">
+                   <div class="clearfix"></div>
+                   <h2 class="section-heading">Track Statistic<br></br></h2>
+				<div class="well">
+					Track from: <a href="/trip?trip_id={{trip.key.urlsafe()}}"">{{trip.trip_name}}</a> 
+					<br>
+					Track name: {{track.track_name}} 
+					<br>
+					File name: <a href="/serve/{{blob.key()}}">{{blob.filename}}</a>
+				</div>
+				{% if status != '' %}
+				<div class="alert alert-dismissable alert-danger">
+						
+						<strong>
+							{{status}}
+						</strong>
+						
+				</div>
+				{% endif %}
+				<div class="row">
+					<div class="col-md-6 col-md-offset-1" style="max-width: 420px;">
+						{% for s in stat %} 
+						<div class="panel panel-primary">
+								<div class="panel-heading">
+									<h4 class="panel-title">
+											{{s.name}}
+									</h4>
+								</div>
+								
+								<div class="panel-body" style="font-size:18px;">
+									<ol>
+										<li>Distance: <b> <i>{{ "{0:0.2f}".format(s.total_distance)}} km</i></b></li>
+										<li>Total time: <b><i>{{s.total_time}}</i></b></li>
+										<li>Avr speed: <b><i>{{"{0:0.2f}".format(s.avr_speed)}} km/h</i></b></li>
+										<li>Total climb: <b><i>{{"{0:0.0f}".format(s.total_climb)}} m</i></b></li>
+										{% if s.max_elev == -100 %}
+										<li>Max elevation: <b>/</b></li>
+										{% else %}
+										<li>Max elevation: <b><i>{{"{0:0.0f}".format(s.max_elev)}} m</i></b></li>
+										{% endif %}
+									</ol>
+								</div>
+						</div>
+						{% endfor %}
+					</div>
+				</div> 
+				
+
+{% endblock %}
+{%block extrascripts%}
+ 
+
+{% endblock %}

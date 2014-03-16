@@ -32,7 +32,18 @@ class TrackStatistic(ndb.Model):
     avr_speed = ndb.FloatProperty()
     total_climb = ndb.FloatProperty()
     max_elev = ndb.FloatProperty()
+   
+class Tags(ndb.Model):
+    '''
+    Models tags for location, type and season of trip
     
+    *Used in Trip as StructuredProperty
+    *Used with user as parent for keeping all users tags
+    '''
+    location = ndb.StringProperty(repeated=True)
+    type = ndb.StringProperty(repeated=True)
+    season = ndb.StringProperty(repeated=True)
+     
 class Trip(ndb.Model):
     '''
     Models a Trip with name,creation date, from date, to date, description and trip avatar, cities and visibility.
@@ -48,6 +59,8 @@ class Trip(ndb.Model):
     visibility = ndb.BooleanProperty()
     #for trip statistic
     trip_statistic = ndb.StructuredProperty(TrackStatistic)
+    #for tags
+    trip_tags = ndb.StructuredProperty(Tags)
 
     
 

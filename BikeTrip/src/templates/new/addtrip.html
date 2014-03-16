@@ -1,0 +1,136 @@
+{% extends "templates/new/managerbase.html" %}
+{% block extrahead %} 
+
+<link rel="stylesheet" href="/static/css/date.css" />
+
+{% endblock %}
+{% block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Add Trip {{a}}</h1>
+                    <div class="well bs-component">
+
+    					<form class="form-horizontal" action="/tripmanager/addtrip" id="addform" enctype="multipart/form-data" method="post">
+        					<fieldset>
+								<div class="form-group">
+								      <label class="col-lg-2 control-label">Name:</label>
+								      <div class="col-lg-8">
+								        <input class="form-control" name="trip_name" id="trip_name" placeholder="Trip name" type="text">
+								      </div>
+								</div>  
+								<div class="form-group">
+								      <label class="col-lg-2 control-label">From:</label>
+
+								      <div class="col-lg-3">
+								      	  <input class="form-control" type="text" id="to_datepicker" name="from_date">
+									  </div>
+								      <label class="col-lg-2 control-label">To:</label>
+								      <div class="col-lg-3">
+								        <input class="form-control" type="text" id="to_datepicker" name="to_date">
+								      </div>
+								</div>  
+								<div class="form-group">
+								      <label class="col-lg-2 control-label">Cities:</label>
+								      <div class="col-lg-8">
+								        <input class="form-control" type="text" name="cities" class="input_field" >
+								      </div>
+								</div>
+							    <div class="form-group">
+								      <label class="col-lg-2 control-label">Description:</label>
+								      <div class="col-lg-3">
+								       <textarea id="textArea" class="form-control" name="description" rows="0" cols="0"></textarea>
+								      </div>
+								</div>    
+							    <div class="form-group">
+								      <label class="col-lg-2 control-label" for="img">Trip Avatar:</label>
+								      <div class="col-lg-3">
+								        <input type="file" name="img" /> 
+								      </div>
+								</div>
+								<div class="form-group">
+							      <label class="col-lg-2 control-label">Visibility:</label>
+							      <div class="col-lg-10">
+							        <div class="radio">
+							          <label>
+							            <input name="visibility" value="True" id="visibility1"  checked="" type="radio">
+							            	Public
+							          </label>
+							        </div>
+							        <div class="radio">
+							          <label>
+							            <input name="visibility" value="False" id="visibility2" type="radio">
+							            	Private
+							          </label>
+							        </div>
+							      </div>
+							    </div>	
+							    <div class="form-group">
+								    <label class="col-lg-2 control-label">Location:</label>
+									<div class="col-lg-8">
+										<div id="location-tag-list-add" class="tag-list" style="margin-top:10px;">
+											<div class="tags">
+											</div>
+											<input name="location" type="hidden" id="location">
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+								    <label class="col-lg-2 control-label">Type:</label>
+									<div class="col-lg-8">
+										<div id="type-tag-list-add" class="tag-list" style="margin-top:10px;">
+											<div class="tags">
+											</div>
+											<input name="type" type="hidden" id="type">
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+								    <label class="col-lg-2 control-label">Season:</label>
+									<div class="col-lg-8">
+										<div id="season-tag-list-add" class="tag-list" style="margin-top:10px;">
+											<div class="tags">
+											</div>
+											<input name="season" type="hidden" id="season">
+										</div>
+									</div>
+								</div>
+								
+							    <div class="form-group">
+							      <div class="col-lg-10 col-lg-offset-2">
+							        <button type="submit" class="btn btn-primary">Submit</button>
+							      </div>
+							    </div>			
+        					</fieldset>
+   						</form>
+			
+
+					</div>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+    <!-- /#wrapper -->
+{% endblock %}
+{%block extrascripts%}
+	<script type="text/javascript" src="/static/js/jquery-ui-1.10.4.custom.min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.validate.js"></script>
+	<script type="text/javascript" src="/static/js/additional-methods.js"></script>
+	<script type="text/javascript" src="/static/js/addFormValidation.js"></script>
+	<script type="text/javascript" src="/static/js/tripmanager.js"></script>
+
+
+<script type="text/javascript">
+createTree({{tree|safe}});
+crateTags({{sug_location|safe}},{{sug_type|safe}},{{sug_season|safe}});
+crateAddTags({{sug_location|safe}},{{sug_type|safe}},{{sug_season|safe}});
+$(document).ready(function() {
+  $(window).keydown(function(event){
+    if(event.keyCode == 13) {
+      event.preventDefault();
+      return false;
+    }
+  });
+});
+</script>
+{% endblock %}

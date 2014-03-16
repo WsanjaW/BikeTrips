@@ -1,0 +1,99 @@
+{% extends "templates/new/managerbase.html" %}
+{% block extrahead %} 
+
+
+{% endblock %}
+{% block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Welcome to Trip Manager</h1>
+						Some usefull text ........
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+    <!-- /#wrapper -->
+{% endblock %}
+{%block extrascripts%}
+<SCRIPT type="text/javascript">
+<!--
+var setting = {
+data: {
+simpleData: {
+enable: true
+}
+}
+};
+
+var zNodes = {{tree|safe}};
+
+$(document).ready(function(){
+	$.fn.zTree.init($("#treeDemo"), setting, zNodes);
+});
+//-->
+</SCRIPT>
+<script>
+    $(function() {
+        // If using Bootstrap 2, be sure to include:
+        // Tags.bootstrapVersion = "2";
+        var l=$('#location-tag-list').tags({
+			tagSize: "md",
+			tagClass:"btn-warning",
+            tagData: {{location|safe}},
+            suggestions:{{sug_location|safe}},
+            afterAddingTag: function(tag){
+            	var lelem = document.getElementById("locationfilter");
+            	lelem.value = "";
+				lelem.value += l.getTags();
+			},
+            afterDeletingTag: function(tag){
+            	var lelem = document.getElementById("locationfilter");
+            	lelem.value = "";
+				lelem.value += l.getTags();
+			}
+           
+        });
+		var t = $('#type-tag-list').tags({
+			tagSize: "md",
+            tagData: {{type|safe}},
+            suggestions:{{sug_type|safe}},
+            afterAddingTag: function(tag){
+            	var lelem = document.getElementById("typefilter");
+            	lelem.value = "";
+				lelem.value += t.getTags();
+			},
+			afterDeletingTag: function(tag){
+            	var lelem = document.getElementById("typefilter");
+            	lelem.value = "";
+				lelem.value += t.getTags();
+			}
+        });
+		var s = $('#season-tag-list').tags({
+			tagSize: "md",
+            tagData: {{season|safe}},
+            suggestions:{{sug_season|safe}},
+            afterAddingTag: function(tag){
+            	var lelem = document.getElementById("seasonfilter");
+            	lelem.value = "";
+				lelem.value += s.getTags();
+			},
+			afterDeletingTag: function(tag){
+            	var lelem = document.getElementById("seasonfilter");
+            	lelem.value = "";
+				lelem.value += s.getTags();
+			}
+        });
+    });
+        $(document).ready(function() {
+  $(window).keydown(function(event){
+    if(event.keyCode == 13) {
+      event.preventDefault();
+      return false;
+    }
+  });
+});
+   
+</script>
+
+{% endblock %}

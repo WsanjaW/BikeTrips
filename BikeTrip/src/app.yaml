@@ -1,18 +1,23 @@
-application: mybicycletrips
+application: sanjaapp
 version: 1
 runtime: python27
 api_version: 1
 threadsafe: true
 
 handlers:
+# static files
 - url: /static/js
   static_dir: static/js
 - url: /static/css
   static_dir: static/css
+- url: /static/fonts
+  static_dir: static/fonts
+- url: /static/font-awesome
+  static_dir: static/font-awesome
 # Endpoints handler
 - url: /_ah/spi/.*
   script: biketrip_api.application
-- url: /addtrip
+- url: /tripmanager
   script: biketrip.application
   login: required
 - url: /worker

@@ -1,4 +1,22 @@
 $(document).ready(function(){
+			// override jquery validate plugin defaults
+			$.validator.setDefaults({
+			    highlight: function(element) {
+			        $(element).closest('.form-group').addClass('has-error');
+			    },
+			    unhighlight: function(element) {
+			        $(element).closest('.form-group').removeClass('has-error');
+			    },
+			    errorElement: 'span',
+			    errorClass: 'help-block',
+			    errorPlacement: function(error, element) {
+			        if(element.parent('.input-group').length) {
+			            error.insertAfter(element.parent());
+			        } else {
+			            error.insertAfter(element);
+			        }
+			    }
+			});
      		jQuery.validator.addMethod("cities", function(value, element) {
      			if (value.search(/[!@#$%^&\*\(\)_\+\?><\.\/\\|]/)  > -1){
      				return false;
@@ -62,13 +80,6 @@ $(document).ready(function(){
      	    				
      	            		
      	   				},
-     	    			highlight: function(element) {
-     	    				$(element).closest('.control-group').removeClass('success').addClass('error');
-     	    			},
-     	    			success: function(element) {
-     	    				element
-     	    					.text('OK!').addClass('valid')
-     	    						.closest('.control-group').removeClass('error').addClass('success');
-     	    			}
+     	    			
      	   		 });
     }); // end document.ready

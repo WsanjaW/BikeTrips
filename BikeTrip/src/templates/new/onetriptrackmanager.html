@@ -1,0 +1,524 @@
+{% extends "templates/new/managerbase.html" %}
+{% block extrahead %} 
+
+{% endblock %}
+{% block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">{{trip.trip_name}}</h1>
+					<ul class="nav nav-tabs" style="margin-bottom: 15px;">
+						<li class="active">
+							<a data-toggle="tab" href="#trip">Trip Info</a>
+						</li>
+						<li class="">
+							<a data-toggle="tab" href="#add">Add Track</a>
+						</li>
+						<li class="">
+							<a data-toggle="tab" href="#update">Update Trip</a>
+						</li>
+						<li class="">
+							<a data-toggle="tab" href="#delete">Delete</a>
+						</li>
+						<li class="">
+							<a data-toggle="tab" href="#charts">Charts</a>
+						</li>
+						
+					</ul>
+					
+					<div id="myTabContent" class="tab-content">
+
+						<div id="trip" class="tab-pane fade active in">
+ 									 <h2 class="section-heading">Trip Info<br></br></h2>
+ 									 
+ 							 <div class="well" style="margin-bottom: 20px;">
+ 							 	<p>Location:{% for loc in trip.trip_tags.location %}
+ 							 		<a onclick="addLocTag('{{loc}}')">{{loc}},</a>
+ 							 		{% endfor %}
+ 							 	</p>
+ 							 	<p>Type:{% for t in trip.trip_tags.type %}
+ 							 		<a onclick="addTypeTag('{{t}}')">{{t}},</a>
+ 							 		{% endfor %}
+ 							 	</p>
+ 							 	<p>Season:{% for s in trip.trip_tags.season %}
+ 							 		<a onclick="addSeasonTag('{{s}}')">{{s}},</a>
+ 							 		{% endfor %}
+ 							 	</p>
+ 							 	<p>From: <i>{{trip.from_date}}</i> To: <i>{{trip.to_date}}</i></p>
+ 							 </div>
+ 							 
+							<div class="row">
+							<div class="col-md-4 col-md-offset-1" style="max-width: 320px;">
+								<div class="panel panel-primary">
+										<div class="panel-heading">
+											<h4 class="panel-title">
+													Description
+											</h4>
+										</div>
+										
+										<div class="panel-body">
+												<p>{{trip.description}}</p>
+												<p>Cities:{% for city in trip.cities %}
+				 									 <a>{{city}},</a> 
+												{% endfor %}</p>
+										</div>
+								</div>
+							</div>
+							<div class="col-md-4" style="max-width: 320px;">
+								<div class="panel panel-primary">
+										<div class="panel-heading">
+											<h4 class="panel-title">
+													Trip Statistic
+											</h4>
+										</div>
+										
+										<div class="panel-body">
+											<ol>
+												<li>Distance: <b> {{ "{0:0.2f}".format(trip.trip_statistic.total_distance)}} km</b></li>
+												{% if trip.trip_statistic.total_time %}
+													<li>Total time: <b>{{trip.trip_statistic.total_time}}</b></li>
+												{% else %}
+													<li>Total time: <b>/</b></li>
+												{% endif %}
+												<li>Avr speed: <b>{{"{0:0.2f}".format(trip.trip_statistic.avr_speed)}} km/h</b></li>
+												<li>Total climb: <b>{{"{0:0.0f}".format(trip.trip_statistic.total_climb)}} m</b></li>
+												{% if trip.trip_statistic.max_elev == -100 %}
+					 								<li>Max elevation: <b>/</b></li> 
+												{% else %}
+													<li>Max elevation: <b>{{"{0:0.0f}".format(trip.trip_statistic.max_elev)}} m</b></li>
+												{% endif %}
+											</ol>
+										</div>
+								</div>
+							</div>
+						</div> 
+						<div class="row">
+							<div class="col-md-8 col-md-offset-1" style="max-width: 642px;">
+								<div class="panel-group" id="accordion2">
+									
+									<div class="panel panel-default">
+											<div class="panel-heading clearfix">
+												<h4 class="panel-title">
+													<a data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
+												
+														<span id="mapicon" class="glyphicon glyphicon-chevron-up"></span>Map
+														
+													</a>
+												</h4>
+											</div>
+											<div id="collapseOne" class="panel-collapse collapse in">
+												<div class="panel-body">
+													<div id="map-canvas" style="margin:20px 20px;width:450px; height:350px"></div>	
+												</div>
+											</div>
+									</div>
+								</div> 
+							</div>
+						</div>
+					<div class="row">
+						<div class="col-md-8 col-md-offset-1" style="max-width: 642px;">
+							<div class="panel-group" id="accordion">
+								
+								<div class="panel panel-default">
+										<div class="panel-heading clearfix">
+											<h4 class="panel-title">
+												<a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+											
+													<span id="tripicon" class="glyphicon glyphicon-chevron-up"></span>Tracks
+													
+												</a>
+													
+												<div class="pull-right">
+													<span class="badge">{{num}}</span>
+													<button  class="btn btn-default btn-xs" type="button" 
+														data-toggle="tooltip" data-placement="bottom" title="Download all tracks">
+														<span class="glyphicon glyphicon-export"></span>
+													</button>												 
+												</div>
+											</h4>
+										</div>
+										<div id="collapseTwo" class="panel-collapse collapse in">
+											<div class="panel-body">
+									          	{% for i in range(num) %}
+
+												
+												<div id="trackwell" class="well well-sm">
+													<div class="row">
+														<div class="col-md-4" style="text-align:left;"><b>{{tracks[i].track_name}}</b></div>
+														<div class="col-md-4" style="text-align:center;"><i>{{blobs[i].filename}}</i></div>
+														<div class="col-md-4" style="text-align:right;">
+															
+															<button  class="btn btn-default btn-xs" type="button" 
+																	data-toggle="tooltip" data-placement="bottom" title="Show statistic"
+																	onclick="location.href='/tripmanager/onetrack?track_id={{tracks[i].key.urlsafe()}}'">
+																<span class="glyphicon glyphicon-stats"></span>
+															</button>
+															<button  class="btn btn-default btn-xs" type="button" 
+																	data-toggle="tooltip" data-placement="bottom" title="Download track"
+																	onclick="location.href='/serve/{{blobs[i].key()}}'">
+																<span class="glyphicon glyphicon-export"></span>
+															</button>
+															{% if user%}
+															<button  class="btn btn-default btn-xs" type="button" 
+																	data-toggle="tooltip" data-placement="bottom" title="Edit track"
+																	onclick="location.href='/tripmanager/onetrack?track_id={{tracks[i].key.urlsafe()}}'">
+																<span class="glyphicon glyphicon-wrench"></span>
+															</button>
+															{% endif %}
+														</div>
+														</div>
+												</div>
+												{% endfor %}
+
+											</div>
+										</div>
+								</div>
+							</div> 
+						</div>
+						</div>
+						</div>
+						<div id="add" class="tab-pane fade"><h2>Add Track </h2>
+							<div class="well bs-component">
+    							<form class="form-horizontal" action={{upload}} id="addtrackform" enctype="multipart/form-data" method="post">
+        							<fieldset>
+	        							<div class="form-group">
+									      <label class="col-lg-2 control-label">Name:</label>
+									      <div class="col-lg-8">
+									        <input class="form-control" name="track_name" id="trip_name" placeholder="Track name" type="text">
+									        <input type="hidden" name="trip_id" value="{{trip.key.urlsafe()}}"/>
+									      </div>
+										</div>  
+										<div class="form-group">
+									      <label class="col-lg-2 control-label">Track(.gpx):</label>
+									      <div class="col-lg-8">
+									        <input  type="file" name="file">
+									      </div>
+										</div>  
+										<div class="form-group">
+									      <div class="col-lg-10 col-lg-offset-2">
+									        <button type="submit" class="btn btn-primary">Submit</button>
+									      </div>
+									    </div>
+        							</fieldset>
+        						</form>
+        					</div>
+								
+						</div>
+						<div id="update" class="tab-pane fade">
+						
+						
+						
+						<h1 class="page-header">Update Trip</h1>
+						
+                    		<div class="well bs-component">
+                    		<form class="form-horizontal" action="/tripmanager/updatetrip" id="addform" enctype="multipart/form-data" method="post">
+        					<fieldset>
+								<div class="form-group">
+								      <label class="col-lg-2 control-label">Name:</label>
+								      <div class="col-lg-8">
+								      	<input type="hidden" name="trip_id" value="{{trip.key.urlsafe()}}"/>
+								        <input class="form-control" name="trip_name" id="trip_name" value="{{trip.trip_name}}" placeholder="Trip name" type="text">
+								      </div>
+								</div>  
+								<div class="form-group">
+								      <label class="col-lg-2 control-label">From:</label>
+
+								      <div class="col-lg-3">
+								      	  <input class="form-control" type="text" value="{{trip.from_date}}" id="to_datepicker" name="from_date">
+									  </div>
+								      <label class="col-lg-2 control-label">To:</label>
+								      <div class="col-lg-3">
+								        <input class="form-control" type="text" value="{{trip.to_date}}" id="to_datepicker" name="to_date">
+								      </div>
+								</div>  
+								<div class="form-group">
+								      <label class="col-lg-2 control-label">Cities:</label>
+								      <div class="col-lg-8">
+								        <input class="form-control" type="text" value="{{cities}}" name="cities" class="input_field" >
+								      </div>
+								</div>
+							    <div class="form-group">
+								      <label class="col-lg-2 control-label">Description:</label>
+								      <div class="col-lg-3">
+								       <textarea id="textArea" class="form-control" name="description" rows="0" cols="0">{{trip.description}}  </textarea>
+								      </div>
+								</div>    
+							    <div class="form-group">
+								      <label class="col-lg-2 control-label" for="img">Trip Avatar:</label>
+								      <div class="col-lg-3">
+								        <input type="file" name="img"  /> 
+								      </div>
+								</div>
+								<div class="form-group">
+							      <label class="col-lg-2 control-label">Visibility:</label>
+							      <div class="col-lg-10">
+							        <div class="radio">
+							          <label>
+							          	{% if trip.visibility %}
+							            <input name="visibility" value="True" id="optionsRadios1"  checked="" type="radio">
+							            {% else %}
+							            <input name="visibility" value="True" id="optionsRadios1"  type="radio">
+							            {% endif %}
+							            	Public
+							          </label>
+							        </div>
+							        <div class="radio">
+							          <label>
+							          	{% if trip.visibility %}
+							             <input name="visibility" value="False" id="optionsRadios2" type="radio">
+							            {% else %}
+							             <input name="visibility" value="False" id="optionsRadios2" checked=""  type="radio">
+							            {% endif %}
+							           
+							            	Private
+							          </label>
+							        </div>
+							      </div>
+							    </div>	
+							    <div class="form-group">
+								    <label class="col-lg-2 control-label">Location:</label>
+									<div class="col-lg-8">
+										<div id="location-tag-list-add" class="tag-list" style="margin-top:10px;width:550px;">
+											<div class="tags">
+											</div>
+											<input name="location" type="hidden" id="location">
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+								    <label class="col-lg-2 control-label">Type:</label>
+									<div class="col-lg-8">
+										<div id="type-tag-list-add" class="tag-list" style="margin-top:10px;width:550px;">
+											<div class="tags">
+											</div>
+											<input name="type" type="hidden" id="type">
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+								    <label class="col-lg-2 control-label">Season:</label>
+									<div class="col-lg-8">
+										<div id="season-tag-list-add" class="tag-list" style="margin-top:10px;width:550px;">
+											<div class="tags">
+											</div>
+											<input name="season" type="hidden" id="season">
+										</div>
+									</div>
+								</div>
+								
+							    <div class="form-group">
+							      <div class="col-lg-10 col-lg-offset-2">
+							        <button type="submit"  class="btn btn-primary">Update</button>
+							      </div>
+							    </div>			
+        					</fieldset>
+   						</form>
+			
+
+					</div>
+						</div>
+						<div id="delete" class="tab-pane fade">
+							<h1 class="page-header">Delete Trip</h1>
+							<div class="well">
+								Deleting trip will couse all tracks and statistic to be deleteted
+								<br>
+								<a href= "/tripmanager/deleteTrip?trip_id={{trip.key.urlsafe()}}"> Delete Trip</a>
+								
+							</div>
+						</div>
+						<div id="charts" class="tab-pane fade ">
+							<div class="panel panel-default" style="max-width:550px;min-height:300px;">
+									<div class="panel-heading">
+										<h4 class="panel-title">
+												Trip Statistic
+										</h4>
+									</div>
+									
+									<div class="panel-body" >
+										<div id="visualization"></div>
+									</div>
+							</div>
+							<div class="panel panel-default">
+									<div class="panel-heading">
+										<h4 class="panel-title">
+												Trip Statistic
+										</h4>
+									</div>
+									
+									<div class="panel-body" >
+										<div id="chart_div"></div>
+									</div>
+							</div>
+ 							
+						</div>
+					</div>						
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+    <!-- /#wrapper -->
+{% endblock %}
+{%block extrascripts%}
+
+
+<script type="text/javascript" src="/static/js/tripmanager.js"></script>
+
+
+<script type="text/javascript">
+createTree({{tree|safe}});
+crateTags({{sug_location|safe}},{{sug_type|safe}},{{sug_season|safe}});
+crateUpdateTags({{sug_location|safe}},{{sug_type|safe}},{{sug_season|safe}},{{trip_loc|safe}},{{trip_type|safe}},{{trip_ses|safe}});
+$(document).ready(function() {
+ 	
+        var lelem = document.getElementById("location");
+        lelem.value = "";
+        for ( var i = 0; i < {{trip_loc|safe}}.length; i++ ) {
+
+			if(i=={{trip_loc|safe}}.length-1){
+				lelem.value += {{trip_loc|safe}}[i];
+			}
+			else{
+				lelem.value += {{trip_loc|safe}}[i] + ",";
+			}
+		}
+	
+	    var telem = document.getElementById("type");
+        telem.value = "";
+        for ( var i = 0; i < {{trip_type|safe}}.length; i++ ) {
+
+			if(i=={{type|safe}}.length-1){
+				telem.value += {{trip_type|safe}}[i];
+			}
+			else{
+				telem.value += {{trip_type|safe}}[i] + ",";
+			}
+		}
+	
+		var selem = document.getElementById("season");
+        selem.value = "";
+        for ( var i = 0; i < {{trip_ses|safe}}.length; i++ ) {
+
+			if(i=={{season|safe}}.length-1){
+				selem.value += {{trip_ses|safe}}[i];
+			}
+			else{
+				selem.value += {{trip_ses|safe}}[i] + ",";
+			}
+		}
+	
+
+});
+$(document).ready(function() {
+  $(window).keydown(function(event){
+    if(event.keyCode == 13) {
+      event.preventDefault();
+      return false;
+    }
+  });
+});
+</script>
+
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
+<script type="text/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+</script>
+<script type="text/javascript">
+
+
+var chart;
+var data2;
+var pom;
+function drawVisualization() {
+	
+ 	var data = new google.visualization.DataTable();
+ 	data.addColumn('string', 'Tracks');
+      data.addColumn('number', 'Total Climb'); 
+      //data.addColumn({type:'string', role:'style'});
+      {% for i in climb_data %}
+      data.addRow({{i|safe}});
+      {% endfor %}
+
+  var wrapper = new google.visualization.ChartWrapper({
+    chartType: 'ColumnChart',
+    dataTable: data,
+    options: {'title': 'Total Climb'},
+    containerId: 'visualization',
+    
+  });
+  wrapper.draw();
+  
+  		data2 = new google.visualization.DataTable();
+  		data2.addColumn('string', 'ID');
+
+  		data2.addColumn('number', 'Distance');
+  		data2.addColumn('number', 'Total Climb');
+  		data2.addColumn('string', 'Region');
+  		data2.addColumn('number', 'Time');
+  		
+  		{% for i in bubble_data %}
+      		r = {{i|safe}}.slice(1);
+      		data2.addRow(r);
+      	{% endfor %}
+
+        var options = {
+          title: 'Correlation between distance, total climb and time of all tracks in trip',
+          hAxis: {title: 'Distance'},
+          vAxis: {title: 'Total Climb'},
+          bubble: {textStyle: {fontSize: 11}}
+        };
+
+        chart = new google.visualization.BubbleChart(document.getElementById('chart_div'));
+        // Add our selection handler.
+  		google.visualization.events.addListener(chart, 'select', selectHandler);
+        chart.draw(data2, options);
+  
+}
+function selectHandler() {
+  var selection = chart.getSelection();
+  //window.location.href = "/stat?track_id="+ data2.getFormattedValue(selection[0].row, 0);
+  alert('You selected ' + data2.getFormattedValue(selection[0].row, 0));
+}
+google.setOnLoadCallback(drawVisualization,"s");
+
+</script>
+ <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUPnhHodFAHnVesDToGphgHi-JRLs0l0U&sensor=false"></script>
+     <script type="text/javascript" src="//www.google.com/jsapi"></script>
+    <script type="text/javascript">
+	  google.load("visualization", "1", {packages:["map"]});
+      google.setOnLoadCallback(drawMap);
+      function drawMap() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('number','Lat');
+        data.addColumn('number','Lon');
+         {% for i in cordinates %}
+      		data.addRow({{i|safe}});
+      	{% endfor %}
+        
+
+        var map = new google.visualization.Map(document.getElementById('map-canvas'));
+        map.draw(data, {mapType: 'normal'});
+      }
+
+    </script>
+	<script>
+	 $('#accordion').on('shown.bs.collapse', function () {
+       $("#tripicon").removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");
+    });
+
+    $('#accordion').on('hidden.bs.collapse', function () {
+       $("#tripicon").removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
+    });
+	$('#accordion2').on('shown.bs.collapse', function () {
+       $("#mapicon").removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");
+    });
+
+    $('#accordion2').on('hidden.bs.collapse', function () {
+       $("#mapicon").removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
+    });
+	</script>
+<script type="text/javascript" src="/static/js/jquery.validate.js"></script>
+	<script type="text/javascript" src="/static/js/additional-methods.js"></script>
+	<script type="text/javascript" src="/static/js/addFormValidation.js"></script>
+	<script type="text/javascript" src="/static/js/updateFormValidation.js"></script>
+
+{% endblock %}

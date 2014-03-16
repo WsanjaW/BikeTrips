@@ -1,0 +1,111 @@
+{% extends "templates/new/managerbase.html" %}
+{% block extrahead %} 
+
+
+{% endblock %}
+{% block content %}
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">{{track.track_name}}</h1>
+					<ul class="nav nav-tabs" style="margin-bottom: 15px;">
+						<li class="active">
+							<a data-toggle="tab" href="#track">Track Info</a>
+						</li>
+						<li class="">
+							<a data-toggle="tab" href="#update">Update Track</a>
+						</li>
+						<li class="">
+							<a data-toggle="tab" href="#delete">Delete</a>
+						</li>
+						<li class="">
+							<a data-toggle="tab" href="#charts">Charts</a>
+						</li>
+						
+					</ul>
+					
+					<div id="myTabContent" class="tab-content">
+
+						<div id="track" class="tab-pane fade active in">
+ 							<h2>Track Info</h2>
+			 				<div class="well" >
+								Track from: <a href="/tripmanager/onetrip?trip_id={{trip.key.urlsafe()}}"">{{trip.trip_name}}</a> 
+								<br>
+								Track name: {{track.track_name}} 
+								<br>
+								File name: <a href="/serve/{{blob.key()}}">{{blob.filename}}</a>
+							</div>
+							
+							{% if status != '' %}
+							<div class="alert alert-dismissable alert-danger">
+									
+									<strong>
+										{{status}}
+									</strong>
+									
+							</div>
+							{% endif %}
+							<div class="row">
+								<div class="col-md-6 col-md-offset-1" style="max-width: 420px;">
+									{% for s in stat %} 
+									<div class="panel panel-primary" style="margin-top:20px;">
+											<div class="panel-heading">
+												<h4 class="panel-title">
+														{{s.name}}
+												</h4>
+											</div>
+											
+											<div class="panel-body" style="font-size:18px;">
+												<ol>
+													<li>Distance: <b> <i>{{ "{0:0.2f}".format(s.total_distance)}} km</i></b></li>
+													<li>Total time: <b><i>{{s.total_time}}</i></b></li>
+													<li>Avr speed: <b><i>{{"{0:0.2f}".format(s.avr_speed)}} km/h</i></b></li>
+													<li>Total climb: <b><i>{{"{0:0.0f}".format(s.total_climb)}} m</i></b></li>
+													{% if s.max_elev == -100 %}
+													<li>Max elevation: <b>/</b></li>
+													{% else %}
+													<li>Max elevation: <b><i>{{"{0:0.0f}".format(s.max_elev)}} m</i></b></li>
+													{% endif %}
+												</ol>
+											</div>
+									</div>
+									{% endfor %}
+								</div>
+							</div> 
+						</div>
+					
+						<div id="update" class="tab-pane fade">
+							<h2>Update Track </h2>
+						</div>
+						<div id="delete" class="tab-pane fade">
+							<h2>Delete Track </h2>
+							<div class="well">
+								Deleting track will also delete .gpx file and all statistic
+								<br>
+								<a href= "/tripmanager/deleteTrack?track_id={{track.key.urlsafe()}}"> Delete Track</a>
+								
+							</div>
+						</div>
+						<div id="charts" class="tab-pane fade ">
+							<h2>Charts </h2>
+ 							
+						</div>
+					</div>						
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+    <!-- /#wrapper -->
+{% endblock %}
+{%block extrascripts%}
+<script type="text/javascript" src="/static/js/tripmanager.js"></script>
+
+
+<script type="text/javascript">
+createTree({{tree|safe}});
+crateTags({{sug_location|safe}},{{sug_type|safe}},{{sug_season|safe}});
+</script>
+<script type="text/javascript" src="/static/js/jquery.validate.js"></script>
+	<script type="text/javascript" src="/static/js/additional-methods.js"></script>
+	<script type="text/javascript" src="/static/js/updateFormValidation.js"></script>
+{% endblock %}

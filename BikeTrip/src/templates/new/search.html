@@ -1,0 +1,237 @@
+{% extends "templates/new/base.html" %}
+{% block extrahead %} 
+
+<link href="static/css/bootstrap-tags.css" rel="stylesheet">
+{% endblock %}
+{% block content %}
+   
+					<ul class="nav nav-pills" style="margin-top:20px;">
+						{%if mytrips%}
+						<li ><a href="/alltrips">Trips</a></li>
+						<!--  <li><a href="/alltracks">Tracks</a></li>-->
+						<li ><a href="/alltrips?mytrips=True">My Trips</a></li>
+						{% else %}
+						<li><a href="/alltrips">Trips</a></li>
+						<!--  <li><a href="/alltracks">Tracks</a></li>-->
+						<li ><a href="/alltrips?mytrips=True">My Trips</a></li>
+						{% endif %}
+						<li class="active"><a href="/search">Search</a></li>
+					</ul>
+					                    <h2 class="section-heading">Search Trips:<br></br></h2>
+					<div class="well">
+						<form class="bs-example form-horizontal" method="get">
+							<fieldset>
+								<legend>Search Trips</legend>
+								<div class="row">
+								<div class="form-group">
+									<label class="col-md-1 control-label">Location:</label>
+									<div class="col-md-6">
+										<div id="location-tag-list" class="tag-list" style="margin-top:10px;">
+											<div class="tags">
+											</div>
+											<input name="locationfilter" type="text" id="locationfilter"  style="display: none;">
+										</div>
+									</div>
+								</div>
+								</div>
+								<div class="row">
+									<div class="form-group">
+										<label class="col-md-1 control-label">Type:</label>
+										<div class="col-md-6">
+											<div id="type-tag-list" class="tag-list" style="margin-top:10px;">
+												<div class="tags">
+												</div>
+												<input name="typefilter" type="text" id="typefilter"  style="display: none;">
+											</div>
+											
+										</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="form-group">
+										<label class="col-md-1 control-label">Season:</label>
+										<div class="col-md-6">
+											<div id="season-tag-list" class="tag-list" style="margin-top:10px;">
+												<div class="tags">
+												</div>
+												<input name="seasonfilter" type="text" id="seasonfilter" style="display: none;">
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="row">
+								<div class="form-group">
+										<div class="col-md-1 col-md-offset-6">
+											<button class="btn btn-primary" type="submit">
+												<span class="glyphicon glyphicon-search"></span>
+												Search
+											</button>
+										</div>
+
+								</div>
+								</div>
+							</fieldset>
+						</form>
+					</div>
+					<div class="panel-group" id="accordion">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+											
+											<span id="allicon" class="glyphicon glyphicon-chevron-up"></span> Results
+									</a>
+								</h4>
+								
+
+
+							</div>
+						
+							<div id="collapseOne" class="panel-collapse collapse in">
+								<div class="panel-body">
+									<ul  class="media-list">
+										<div id="l">
+										{% for trip in trips %}
+										<div class="panel panel-default">
+											<div class="panel-body" style="{ word-wrap: break-word;}">
+											
+												<li>
+													<div class="row">
+														<div class="col-md-2">
+															{% if trip.trip_avatar %}
+															<a class="pull-left" href="#">
+																<img class="media-object" src="/img?img_id={{trip.key.urlsafe()}}" alt="...">
+															</a>
+															{% endif %}
+															
+														</div>
+														<div class="col-md-8">
+															<a href="/trip?trip_id={{trip.key.urlsafe()}}""><h4 class="media-heading">{{trip.trip_name}}</h4></a>
+															<div class="row">
+																<div class="col-md-4">
+																	<p><b>From:</b> <i>{{trip.from_date}}</i> <b>To:</b> <i>{{trip.to_date}}</i></p>
+																	{{trip.description}}
+																</div>
+																<div class="col-md-4">
+																	<b><i>Trip Statistic</i></b>
+																	<ol>
+																		<li>Distance: <b> {{ "{0:0.2f}".format(trip.trip_statistic.total_distance)}} km</b></li>
+																		{% if trip.trip_statistic.total_time %}
+																		<li>Total time: <b>{{trip.trip_statistic.total_time}}</b></li>
+																		{% else %}
+																		<li>Total time: <b>/</b></li>
+																		{% endif %}
+																		<li>Avr speed: <b>{{"{0:0.2f}".format(trip.trip_statistic.avr_speed)}} km/h</b></li>
+																		<li>Total climb: <b>{{"{0:0.0f}".format(trip.trip_statistic.total_climb)}} m</b></li>
+																		{% if trip.trip_statistic.max_elev == -100 %}
+				 														<li>Max elevation: <b>/</b></li> 
+																		{% else %}
+																		<li>Max elevation: <b>{{"{0:0.0f}".format(trip.trip_statistic.max_elev)}} m</b></li>
+																		{% endif %}
+																	</ol>
+																</div>
+															</div>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-md-8">
+															Cities:
+     	    													{% for city in trip.cities %}
+			 														<a>{{city}},</a> 
+																{% endfor %}
+														</div>
+													</div>
+												</li>
+											
+											</div>
+											<div class="panel-footer">
+												Location:
+												{%for l in trip.trip_tags.location%}
+													<a href="/search?locationfilter={{l}}&typefilter=&seasonfilter=">{{l}},</a> 
+												{%endfor%}
+												Type:
+												{%for t in trip.trip_tags.type%}
+													<a href="/search?locationfilter=&typefilter={{t}}&seasonfilter=">{{t}},</a> 
+												{%endfor%}
+												Season:
+												{%for s in trip.trip_tags.season%}
+													<a href="/search?locationfilter=&typefilter=&seasonfilter={{s}}">{{s}},</a> 
+												{%endfor%}
+											</div>
+										</div>
+										{% endfor %}
+										</div>
+									</ul>
+										{% if more %}
+       
+	  									 <button  id="loadb" class="btn btn-default btn-lg btn-block" type="button">
+												Load more tracks
+										</button>
+       									{% endif %}
+									
+								</div>
+							</div>
+						</div>
+					</div>
+					
+	
+{% endblock %}
+{%block extrascripts%}
+<script>
+	 $('#accordion').on('shown.bs.collapse', function () {
+       $("#allicon").removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");
+    });
+
+    $('#accordion').on('hidden.bs.collapse', function () {
+       $("#allicon").removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
+    });
+</script>
+<script type="text/javascript">
+		{% if cursor %}
+			var cursor = "{{cursor.urlsafe()}}";
+		{% endif %}
+			$(document).ready(function(){
+  				$("button").click(function(){
+   					 $.post("/loadtrips",{'cursor':cursor},function(data,status){
+    
+      					var a = $('#l').html();
+     					cursor = data.next_curs;
+     					$('#l').html(a+data.trips);
+     					if(data.more == false){
+     						$('#loadb').hide();
+      					}
+    		});
+  });
+});
+</script>
+<script src="static/js/bootstrap-tags.js"></script>
+<script type="text/javascript" src="/static/js/tripmanager.js"></script>
+
+
+<script type="text/javascript">
+crateTags([],[],[]);
+
+$(document).ready(function() {
+  $(window).keydown(function(event){
+    if(event.keyCode == 13) {
+      event.preventDefault();
+      return false;
+    }
+  });
+});
+</script>
+{% endblock %}
+
+
+    
+	   
+
+       
+
+   
+
+ 
+
+    
+
+

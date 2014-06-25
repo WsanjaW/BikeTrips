@@ -228,8 +228,8 @@ class OneTrip(BaseHandler):
         for city in cities:
             try:
                 city = city.lower().replace(" ", "+")
-                url = "http://api.geonames.org/searchJSON?formatted=true&name={0}&maxRows=1&lang=es&username=wsanjaw&style=short".format(city)
-                result = urlfetch.fetch(url)
+                api_url = "http://api.geonames.org/searchJSON?formatted=true&name={0}&maxRows=1&lang=es&username=wsanjaw&style=short".format(city)
+                result = urlfetch.fetch(api_url)
                 cordinates.append(helper.procesCity(result.content))
             except:
                 cordinates.append([0,0])

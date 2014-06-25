@@ -110,17 +110,7 @@
 														<div class="col-md-4" style="text-align:left;"><b>{{tracks[i].track_name}}</b></div>
 														<div class="col-md-4" style="text-align:center;"><i>{{blobs[i].filename}}</i></div>
 														<div class="col-md-4" style="text-align:right;">
-															<button class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" type="button">
-																<span class="glyphicon glyphicon-tags"></span>
-																 	&nbsp;
-																<span class="caret"></span>
-															</button>
-															<ul class="dropdown-menu" style="text-align:center;">
-																<li><a href="#">Tag1</a></li>
-																<li><a href="#">Tag2</a></li>
-																<li><a href="#">Tag3</a></li>
-																
-															</ul>
+
 															<button  class="btn btn-default btn-xs" type="button" 
 																	data-toggle="tooltip" data-placement="bottom" title="Show statistic"
 																	onclick="location.href='/stat?track_id={{tracks[i].key.urlsafe()}}'">
@@ -134,7 +124,7 @@
 															{% if user%}
 															<button  class="btn btn-default btn-xs" type="button" 
 																	data-toggle="tooltip" data-placement="bottom" title="Edit track"
-																	onclick="location.href='/statistic'">
+																	onclick="location.href='/tripmanager/onetrack?track_id={{tracks[i].key.urlsafe()}}'">
 																<span class="glyphicon glyphicon-wrench"></span>
 															</button>
 															{% endif %}
